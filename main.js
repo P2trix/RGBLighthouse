@@ -106,6 +106,9 @@ const waterMat = new THREE.ShaderMaterial({
     uNormalStrength: { value: 2.5 },
     uSpeed:          { value: 0.055 },
     uScale:          { value: 0.08 },
+    uOpacity:        { value: 1.0 },
+    uTexture:        { value: null },
+    uTexMix:         { value: 0.0 },
     uLightRPos:   { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
     uLightGPos:   { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
     uLightBPos:   { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
@@ -129,6 +132,9 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uNormalStrength;
     uniform float uSpeed;
     uniform float uScale;
+    uniform float uOpacity;
+    uniform sampler2D uTexture;
+    uniform float uTexMix;
     uniform vec3 uLightRPos, uLightGPos, uLightBPos;
     uniform float uLightRInt, uLightGInt, uLightBInt;
     varying vec3 vWPos;
@@ -176,10 +182,14 @@ const waterMat = new THREE.ShaderMaterial({
 
       col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
 
-      gl_FragColor = vec4(col, 1.0);
+      vec3 texCol = texture2D(uTexture, uv * 0.5).rgb;
+      col = mix(col, texCol, uTexMix);
+
+      gl_FragColor = vec4(col, uOpacity);
       #include <fog_fragment>
     }`,
   fog: true,
+  transparent: true,
   side: THREE.DoubleSide,
 });
 const water = new THREE.Mesh(waterGeo, waterMat);
@@ -593,9 +603,18 @@ function setupWaterTool() {
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Water</span>'
     + '<label class="pix-tool__chk"><input type="checkbox" id="wt-on" checked> on</label></div>'
-    + row('Waves', 'wt-str', 0,    6,    0.1,    2.5,   1)
-    + row('Speed', 'wt-spd', 0,    0.2,  0.005,  0.055, 3)
-    + row('Scale', 'wt-scl', 0.01, 0.3,  0.005,  0.08,  3);
+    + row('Waves',   'wt-str', 0,    6,    0.1,   2.5,   1)
+    + row('Speed',   'wt-spd', 0,    0.2,  0.005, 0.055, 3)
+    + row('Scale',   'wt-scl', 0.01, 0.3,  0.005, 0.08,  3)
+    + row('Opacity', 'wt-opa', 0,    1,    0.02,  1,     2)
+    + '<div class="pix-tool__head" style="margin-top:10px;border-top:1px solid rgba(157,164,177,0.12);padding-top:8px"><span>Texture</span></div>'
+    + row('Mix', 'wt-tex-mix', 0, 1, 0.02, 0, 2)
+    + '<div class="pix-tool__row" style="margin-top:4px">'
+    + '<input type="file" id="wt-tex-file" accept=".png,.webp,.jpg,.jpeg" style="display:none">'
+    + '<button class="pix-tool__btn" id="wt-tex-btn" style="flex:1">load png / webp</button>'
+    + '<button class="pix-tool__btn" id="wt-tex-clr" title="clear texture">✕</button>'
+    + '</div>'
+    + '<div class="pix-tool__row" style="margin-top:2px"><code id="wt-tex-name" style="color:#6f8cff;font-size:10px;word-break:break-all"></code></div>';
 
   const chk = panel.querySelector('#wt-on');
   chk.addEventListener('change', () => {
@@ -613,9 +632,41 @@ function setupWaterTool() {
     });
   };
 
-  bind('wt-str', (v) => { waterMat.uniforms.uNormalStrength.value = v; }, 1);
-  bind('wt-spd', (v) => { waterMat.uniforms.uSpeed.value = v; },          3);
-  bind('wt-scl', (v) => { waterMat.uniforms.uScale.value = v; },          3);
+  bind('wt-str',     (v) => { waterMat.uniforms.uNormalStrength.value = v; }, 1);
+  bind('wt-spd',     (v) => { waterMat.uniforms.uSpeed.value = v; },          3);
+  bind('wt-scl',     (v) => { waterMat.uniforms.uScale.value = v; },          3);
+  bind('wt-opa',     (v) => { waterMat.uniforms.uOpacity.value = v; },        2);
+  bind('wt-tex-mix', (v) => { waterMat.uniforms.uTexMix.value = v; },         2);
+
+  const fileInput = panel.querySelector('#wt-tex-file');
+  const nameEl    = panel.querySelector('#wt-tex-name');
+
+  panel.querySelector('#wt-tex-btn').addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    new THREE.TextureLoader().load(url, (tex) => {
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      if (waterMat.uniforms.uTexture.value) waterMat.uniforms.uTexture.value.dispose();
+      waterMat.uniforms.uTexture.value = tex;
+      nameEl.textContent = file.name;
+      URL.revokeObjectURL(url);
+    });
+    fileInput.value = '';
+  });
+
+  panel.querySelector('#wt-tex-clr').addEventListener('click', () => {
+    if (waterMat.uniforms.uTexture.value) {
+      waterMat.uniforms.uTexture.value.dispose();
+      waterMat.uniforms.uTexture.value = null;
+    }
+    waterMat.uniforms.uTexMix.value = 0;
+    panel.querySelector('#wt-tex-mix').value = 0;
+    panel.querySelector('#wt-tex-mix-v').textContent = '0.00';
+    nameEl.textContent = '';
+  });
 }
 
 function setupGlbTool() {

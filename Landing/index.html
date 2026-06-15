@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patryk Wenda — Portfolio</title>
-  <meta name="description" content="Creative developer & designer. Interactive 3D experiences.">
+  <title>Patryk Wenda — Game Studio</title>
+  <meta name="description" content="Independent game studio. 3D · Design · Interactive Experiences.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
   <script type="importmap">
     {
@@ -18,69 +21,233 @@
 <body>
 
   <!-- ── HERO ──────────────────────────────────────────── -->
-  <section class="hero">
-    <canvas id="canvas"></canvas>
-
-    <div id="loader" class="loader">
-      <div class="loader__spinner"></div>
+  <section class="section hero-section" id="hero">
+    <div class="section__label">
+      <span>Hero</span>
     </div>
+    <div class="section__divider"></div>
+    <div class="section__body hero__body">
 
-    <div class="hero__content">
-      <p class="hero__eyebrow">Creative Developer</p>
-      <h1 class="hero__title">Patryk<br>Wenda</h1>
-      <p class="hero__sub">3D · Web · Design</p>
-      <a href="#work" class="hero__cta">See my work</a>
+      <canvas id="canvas"></canvas>
+      <div id="loader" class="loader"><div class="loader__spinner"></div></div>
+
+      <div class="hero__text">
+        <p class="tag">— Independent Game Studio</p>
+        <h1 class="hero__title">We build<br><em>worlds.</em></h1>
+        <p class="hero__desc">3D environments, interactive experiences<br>and game systems from scratch.</p>
+        <div class="hero__links">
+          <a href="#work" class="btn btn--outline">View projects</a>
+          <a href="#contact" class="btn btn--ghost">Get in touch ↗</a>
+        </div>
+      </div>
+
+      <div class="hero__meta">
+        <div class="hero__meta-item">
+          <span class="hero__meta-num">12+</span>
+          <span class="hero__meta-label">projects shipped</span>
+        </div>
+        <div class="hero__meta-item">
+          <span class="hero__meta-num">3</span>
+          <span class="hero__meta-label">game engines</span>
+        </div>
+        <div class="hero__meta-item">
+          <span class="hero__meta-num">∞</span>
+          <span class="hero__meta-label">coffee consumed</span>
+        </div>
+      </div>
+
     </div>
+  </section>
 
-    <div class="hero__scroll">
-      <span>scroll</span>
-      <div class="hero__scroll-line"></div>
+  <!-- ── SERVICES ───────────────────────────────────────── -->
+  <section class="section" id="services">
+    <div class="section__label">
+      <span>Services</span>
+    </div>
+    <div class="section__divider"></div>
+    <div class="section__body">
+      <div class="services__head">
+        <h2 class="section-title">What we do.</h2>
+        <p class="section-sub">End-to-end game production — from concept to launch.</p>
+      </div>
+      <div class="services__grid">
+        <div class="service-card">
+          <div class="service-card__num">01</div>
+          <h3 class="service-card__title">Game Design</h3>
+          <p class="service-card__desc">Mechanics, systems, balancing, GDDs. We design games that feel good to play.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__num">02</div>
+          <h3 class="service-card__title">3D Art &amp; Worlds</h3>
+          <p class="service-card__desc">Environments, characters, props. From blockout to final lit scene.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__num">03</div>
+          <h3 class="service-card__title">Interactive Web</h3>
+          <p class="service-card__desc">WebGL experiences, Three.js scenes, interactive portfolios and game demos.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__num">04</div>
+          <h3 class="service-card__title">Narrative Design</h3>
+          <p class="service-card__desc">Story structure, dialogue systems, world-building and lore documentation.</p>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- ── WORK ──────────────────────────────────────────── -->
-  <section class="work" id="work">
-    <div class="work__inner">
-      <h2 class="section-title">Selected Work</h2>
+  <section class="section" id="work">
+    <div class="section__label">
+      <span>Work</span>
+    </div>
+    <div class="section__divider"></div>
+    <div class="section__body">
+      <div class="work__head">
+        <h2 class="section-title">Selected projects.</h2>
+        <div class="work__tabs">
+          <button class="tab is-active" data-filter="all">All</button>
+          <button class="tab" data-filter="3d">3D</button>
+          <button class="tab" data-filter="web">Web</button>
+          <button class="tab" data-filter="game">Game</button>
+        </div>
+      </div>
       <div class="work__grid">
-        <article class="card">
-          <div class="card__thumb card__thumb--1"></div>
-          <div class="card__body">
-            <span class="card__tag">Three.js · Spline</span>
-            <h3 class="card__title">RGB Lighthouse</h3>
-            <p class="card__desc">Interactive 3D scene with volumetric beam, pixel art post-processing and dynamic RGB lighting.</p>
-            <a href="../index.html" class="card__link">Open scene →</a>
+        <article class="project-card" data-cat="3d web">
+          <div class="project-card__img">
+            <div class="project-card__placeholder project-card__placeholder--lighthouse"></div>
+          </div>
+          <div class="project-card__body">
+            <div class="project-card__top">
+              <span class="project-card__tag">Three.js · Spline · WebGL</span>
+              <span class="project-card__year">2026</span>
+            </div>
+            <h3 class="project-card__title">RGB Lighthouse</h3>
+            <p class="project-card__desc">Interactive 3D lighthouse with volumetric beam, pixel art post-processing and dynamic RGB lighting.</p>
+            <a href="../index.html" class="project-card__link">Open scene →</a>
           </div>
         </article>
-        <article class="card">
-          <div class="card__thumb card__thumb--2"></div>
-          <div class="card__body">
-            <span class="card__tag">Coming soon</span>
-            <h3 class="card__title">Next Project</h3>
-            <p class="card__desc">More work in progress.</p>
+
+        <article class="project-card" data-cat="game">
+          <div class="project-card__img">
+            <div class="project-card__placeholder project-card__placeholder--game"></div>
+          </div>
+          <div class="project-card__body">
+            <div class="project-card__top">
+              <span class="project-card__tag">Unity · C# · Procedural</span>
+              <span class="project-card__year">2025</span>
+            </div>
+            <h3 class="project-card__title">Project Atlas</h3>
+            <p class="project-card__desc">Procedurally generated open world with dynamic weather systems and survival mechanics.</p>
+            <span class="project-card__wip">In development</span>
           </div>
         </article>
-        <article class="card">
-          <div class="card__thumb card__thumb--3"></div>
-          <div class="card__body">
-            <span class="card__tag">Coming soon</span>
-            <h3 class="card__title">Next Project</h3>
-            <p class="card__desc">More work in progress.</p>
+
+        <article class="project-card" data-cat="3d">
+          <div class="project-card__img">
+            <div class="project-card__placeholder project-card__placeholder--env"></div>
+          </div>
+          <div class="project-card__body">
+            <div class="project-card__top">
+              <span class="project-card__tag">Blender · Unreal Engine 5</span>
+              <span class="project-card__year">2025</span>
+            </div>
+            <h3 class="project-card__title">Neon Ruins</h3>
+            <p class="project-card__desc">Cyberpunk environment art — modular kit for UE5 with Lumen GI and Nanite geometry.</p>
+            <span class="project-card__wip">Coming soon</span>
           </div>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- ── CONTACT ───────────────────────────────────────── -->
-  <section class="contact" id="contact">
-    <div class="contact__inner">
-      <h2 class="section-title">Get in touch</h2>
-      <p class="contact__sub">Let's build something together.</p>
-      <a href="mailto:p2trix@gmail.com" class="contact__email">p2trix@gmail.com</a>
+  <!-- ── STACK ─────────────────────────────────────────── -->
+  <section class="section" id="stack">
+    <div class="section__label">
+      <span>Stack</span>
+    </div>
+    <div class="section__divider"></div>
+    <div class="section__body">
+      <h2 class="section-title">Tools of the trade.</h2>
+      <div class="stack__grid">
+        <div class="stack__group">
+          <p class="stack__group-label">Engines</p>
+          <ul class="stack__list">
+            <li>Unity 6</li>
+            <li>Unreal Engine 5</li>
+            <li>Godot 4</li>
+          </ul>
+        </div>
+        <div class="stack__group">
+          <p class="stack__group-label">3D &amp; Art</p>
+          <ul class="stack__list">
+            <li>Blender</li>
+            <li>Spline</li>
+            <li>Substance 3D</li>
+          </ul>
+        </div>
+        <div class="stack__group">
+          <p class="stack__group-label">Web / Interactive</p>
+          <ul class="stack__list">
+            <li>Three.js</li>
+            <li>WebGL / GLSL</li>
+            <li>React / Next.js</li>
+          </ul>
+        </div>
+        <div class="stack__group">
+          <p class="stack__group-label">Languages</p>
+          <ul class="stack__list">
+            <li>C#</li>
+            <li>GDScript</li>
+            <li>TypeScript</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ── CONTACT ───────────────────────────────────────── -->
+  <section class="section" id="contact">
+    <div class="section__label">
+      <span>Contact</span>
+    </div>
+    <div class="section__divider"></div>
+    <div class="section__body contact__body">
+      <p class="contact__pre">Ready to build something?</p>
+      <h2 class="contact__title">Let's talk.</h2>
+      <a href="mailto:p2trix@gmail.com" class="contact__email">p2trix@gmail.com</a>
+      <div class="contact__socials">
+        <a href="https://github.com/P2trix" class="social-link" target="_blank" rel="noopener">GitHub</a>
+        <span class="social-sep">/</span>
+        <a href="https://p2trix.github.io/RGBLighthouse/" class="social-link" target="_blank" rel="noopener">RGBLighthouse</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="section__label"><span>2026</span></div>
+    <div class="section__divider"></div>
+    <div class="section__body footer__body">
+      <span class="footer__copy">© 2026 Patryk Wenda. All rights reserved.</span>
+      <span class="footer__built">Built with Three.js · No frameworks hurt in the making.</span>
+    </div>
+  </footer>
+
   <script type="module" src="hero.js"></script>
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const cards = document.querySelectorAll('.project-card');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
+        const filter = tab.dataset.filter;
+        cards.forEach(card => {
+          const show = filter === 'all' || card.dataset.cat.includes(filter);
+          card.style.display = show ? '' : 'none';
+        });
+      });
+    });
+  </script>
 </body>
 </html>

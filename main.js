@@ -118,12 +118,10 @@ const waterMat = new THREE.ShaderMaterial({
 
     vec3 pointLight(vec3 N, vec3 V, vec3 lPos, vec3 lCol, float lInt){
       vec3 L = normalize(lPos - vWPos);
-      float dist = length(lPos - vWPos);
-      float att = lInt / (dist * dist + 1.0);
       float diff = max(dot(N, L), 0.0);
       vec3 H = normalize(L + V);
-      float spec = pow(max(dot(N, H), 0.0), 48.0);
-      return lCol * att * (diff * 0.4 + spec * 1.2);
+      float spec = pow(max(dot(N, H), 0.0), 32.0);
+      return lCol * lInt * (diff * 0.7 + spec * 0.5);
     }
 
     void main(){
@@ -144,9 +142,9 @@ const waterMat = new THREE.ShaderMaterial({
 
       vec3 col = vec3(0.005, 0.005, 0.008);
 
-      col += pointLight(N, V, uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0015);
-      col += pointLight(N, V, uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0015);
-      col += pointLight(N, V, uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0015);
+      col += pointLight(N, V, uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.004);
+      col += pointLight(N, V, uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.004);
+      col += pointLight(N, V, uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.004);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>

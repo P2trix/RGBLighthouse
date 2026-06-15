@@ -189,7 +189,9 @@ html, body {
   z-index: 12;
 }
 #leftTools .pix-tool {
-  position: static;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
 }
 .beam-tool .pix-tool__row { margin-top: 6px; }
 .bm-pos { flex: 1; color: #aeb6c2; font-size: 11px; }

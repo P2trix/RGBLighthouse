@@ -15,7 +15,7 @@
     "speed": 0.8,
     "lengthScale": 1,
     "colorHex": "fff8e8",
-    "enabled": false
+    "enabled": true
   },
   "lights": {
     "base": { "red": 102, "green": 82, "blue": 68 },
@@ -28,5 +28,6 @@
     "threshold": 0.55,
     "radius": 0.5
   },
-  "pixelSize": 4.75
+  "pixelSize": 4.75,
+  "ca": 0.05
 }

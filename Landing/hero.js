@@ -5,6 +5,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 const BG = 0x07090F;
 const canvas = document.getElementById('canvas');
@@ -62,6 +63,23 @@ const bloom = new UnrealBloomPass(
   0.45, 0.5, 0.55
 );
 composer.addPass(bloom);
+
+const caPass = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uStrength: { value: 0.0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uStrength;
+    varying vec2 vUv;
+    void main(){
+      vec2 offset = uStrength * (vUv - 0.5);
+      float r = texture2D(tDiffuse, vUv - offset).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv + offset).b;
+      gl_FragColor = vec4(r, g, b, 1.0);
+    }`,
+});
+composer.addPass(caPass);
 composer.addPass(new OutputPass());
 
 scene.add(new THREE.AmbientLight(0x0a1018, 0.12));
@@ -226,6 +244,7 @@ function applyHeroSettings(s) {
     beamCones.forEach((c) => { c.visible = beamEnabled; });
   }
   if (s.pixelSize != null) pixelPass.pixelSize = s.pixelSize;
+  if (s.ca        != null) caPass.uniforms.uStrength.value = s.ca;
   if (s.lights?.base) {
     base.red = s.lights.base.red; base.green = s.lights.base.green; base.blue = s.lights.base.blue;
     lightRed.intensity = base.red; lightGreen.intensity = base.green; lightBlue.intensity = base.blue;

@@ -448,7 +448,7 @@ function setupPixelTool(renderPass, pixelPass) {
     '<div class="pix-tool__head"><span>Pixelate</span>'
     + '<label class="pix-tool__chk"><input type="checkbox" id="px-on" checked> on</label></div>'
     + row('Size', 'px-size', 1, 16, 0.25, pixelPass.pixelSize)
-    + row('CA',   'px-ca',   0, 0.02, 0.0005, 0, 4)
+    + row('CA',   'px-ca',   0, 0.1,  0.005,  0, 3)
     + '<div class="pix-tool__head" style="margin-top:10px;border-top:1px solid rgba(157,164,177,0.12);padding-top:8px"><span>Bloom</span></div>'
     + row('Str', 'bl-str', 0, 3,   0.05, bloom.strength,  2)
     + row('Thr', 'bl-thr', 0, 1,   0.01, bloom.threshold, 2)
@@ -482,7 +482,7 @@ function setupPixelTool(renderPass, pixelPass) {
     });
   };
 
-  bind('px-ca',  (v) => { caPass.uniforms.uStrength.value = v; }, 4);
+  bind('px-ca',  (v) => { caPass.uniforms.uStrength.value = v; }, 3);
   bind('bl-str', (v) => { bloom.strength  = v; });
   bind('bl-thr', (v) => { bloom.threshold = v; });
   bind('bl-rad', (v) => { bloom.radius    = v; });
@@ -772,6 +772,7 @@ function gatherSettings() {
       radius:    bloom.radius,
     },
     pixelSize: pixelPass.pixelSize,
+    ca: caPass.uniforms.uStrength.value,
   };
 }
 

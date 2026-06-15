@@ -93,6 +93,7 @@ const waterMat = new THREE.ShaderMaterial({
     #include <fog_pars_vertex>
     uniform float uTime;
     varying float vH;
+    varying vec3 vWPos;
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
     float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
       return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
@@ -103,17 +104,34 @@ const waterMat = new THREE.ShaderMaterial({
       float h=fbm(uv);
       vH=h;
       pos.y+=(h-.5)*7.0;
-      vec4 mvPos=modelViewMatrix*vec4(pos,1.0);
+      vec4 wPos=modelMatrix*vec4(pos,1.0);
+      vWPos=wPos.xyz;
+      vec4 mvPos=viewMatrix*wPos;
       gl_Position=projectionMatrix*mvPos;
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
     varying float vH;
+    varying vec3 vWPos;
+    uniform vec3 cameraPosition;
     void main(){
+      /* derive surface normal from screen-space height derivatives */
+      float dhx=dFdx(vH)*7.0;
+      float dhz=dFdy(vH)*7.0;
+      vec3 N=normalize(vec3(-dhx,1.0,-dhz));
+
+      vec3 L=normalize(vec3(0.4,1.0,0.6));
+      vec3 V=normalize(cameraPosition-vWPos);
+      vec3 H=normalize(L+V);
+
+      float diff=max(dot(N,L),0.0)*0.35;
+      float spec=pow(max(dot(N,H),0.0),48.0)*0.25;
+
       vec3 trough=vec3(0.01,0.02,0.05);
       vec3 crest =vec3(0.06,0.09,0.18);
       vec3 col=mix(trough,crest,smoothstep(.3,.75,vH));
+      col+=diff*vec3(0.05,0.09,0.14)+spec*vec3(0.4,0.55,0.7);
       gl_FragColor=vec4(col,1.0);
       #include <fog_fragment>
     }`,
@@ -125,7 +143,6 @@ const water = new THREE.Mesh(waterGeo, waterMat);
 water.position.y = -0.3;
 scene.add(water);
 
-const beamCones = [];
 let beamAngle = 0;
 const beamTilt = -0.349;
 const size = new THREE.Vector3();
@@ -155,50 +172,6 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
   lightBlue.position.set(-1.2, 6.3, 3.8);   lightBlue.distance = reach;  lightBlue.intensity = base.blue;
 
   beam.position.set(-0.40, 8.64, -0.95);
-  const beamLength = Math.max(size.x, size.z) * 1.4;
-
-  const vertexShader = `
-    uniform float uHeight;
-    varying float vFade;
-    void main() {
-      vFade = clamp(1.0 - (-position.z / uHeight), 0.0, 1.0);
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }`;
-  const fragmentShader = `
-    uniform vec3 uColor;
-    uniform float uOpacity;
-    varying float vFade;
-    void main() { gl_FragColor = vec4(uColor, uOpacity * vFade * vFade); }`;
-
-  /* 3 nested cones — inner sharp core + 2 wide soft halos */
-  const layers = [
-    { radiusMult: 0.5,  opacity: 0.22 },
-    { radiusMult: 1.0,  opacity: 0.10 },
-    { radiusMult: 1.85, opacity: 0.04 },
-  ];
-
-  layers.forEach(({ radiusMult, opacity }) => {
-    const r = beamLength * Math.tan(Math.PI / 18) * radiusMult;
-    const geo = new THREE.ConeGeometry(r, beamLength, 48, 1, true);
-    geo.translate(0, -beamLength / 2, 0);
-    geo.rotateX(Math.PI / 2);
-    const mat = new THREE.ShaderMaterial({
-      uniforms: {
-        uColor:   { value: new THREE.Color(0xfff8e8) },
-        uOpacity: { value: opacity },
-        uHeight:  { value: beamLength },
-      },
-      vertexShader, fragmentShader,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide,
-    });
-    const cone = new THREE.Mesh(geo, mat);
-    cone.position.copy(beam.position);
-    scene.add(cone);
-    beamCones.push(cone);
-  });
 
   loaderEl.classList.add('is-hidden');
   loaded = true;
@@ -216,16 +189,6 @@ function animate() {
   waterMat.uniforms.uTime.value = t;
 
   if (loaded) {
-    beamAngle += dt * 0.8;
-    const ct = Math.cos(beamTilt), st = Math.sin(beamTilt);
-    beam.target.position.set(
-      beam.position.x + Math.sin(beamAngle) * 40 * ct,
-      beam.position.y - st * 40,
-      beam.position.z + Math.cos(beamAngle) * 40 * ct
-    );
-    beam.target.updateMatrixWorld();
-    beamCones.forEach(c => c.lookAt(beam.target.position));
-
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);
     lightBlue.intensity  = base.blue  * (1 + Math.sin(t * 2.5 + 2) * 0.12);

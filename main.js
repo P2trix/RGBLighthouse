@@ -91,6 +91,7 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uTime;
     uniform float uAmp;
     varying float vH;
+    varying vec3 vWPos;
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
     float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
       return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
@@ -101,17 +102,33 @@ const waterMat = new THREE.ShaderMaterial({
       float h=fbm(uv);
       vH=h;
       pos.y+=(h-.5)*uAmp;
-      vec4 mvPos=modelViewMatrix*vec4(pos,1.0);
+      vec4 wPos=modelMatrix*vec4(pos,1.0);
+      vWPos=wPos.xyz;
+      vec4 mvPos=viewMatrix*wPos;
       gl_Position=projectionMatrix*mvPos;
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
     varying float vH;
+    varying vec3 vWPos;
+    uniform vec3 cameraPosition;
     void main(){
+      float dhx=dFdx(vH)*7.0;
+      float dhz=dFdy(vH)*7.0;
+      vec3 N=normalize(vec3(-dhx,1.0,-dhz));
+
+      vec3 L=normalize(vec3(0.4,1.0,0.6));
+      vec3 V=normalize(cameraPosition-vWPos);
+      vec3 H=normalize(L+V);
+
+      float diff=max(dot(N,L),0.0)*0.35;
+      float spec=pow(max(dot(N,H),0.0),48.0)*0.25;
+
       vec3 trough=vec3(0.01,0.02,0.05);
       vec3 crest =vec3(0.06,0.09,0.18);
       vec3 col=mix(trough,crest,smoothstep(.3,.75,vH));
+      col+=diff*vec3(0.05,0.09,0.14)+spec*vec3(0.4,0.55,0.7);
       gl_FragColor=vec4(col,1.0);
       #include <fog_fragment>
     }`,

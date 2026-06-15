@@ -189,6 +189,8 @@ scene.add(water);
 const beamCones = [];
 let beamAngle = 0;
 let beamTilt = 0.3;
+let beamEnabled = true;
+let beamSpeed = 0.8;
 const size = new THREE.Vector3();
 let loaded = false;
 
@@ -217,7 +219,13 @@ function applyHeroSettings(s) {
     beam.position.set(s.beam.pos.x, s.beam.pos.y, s.beam.pos.z);
     beamCones.forEach((c) => c.position.copy(beam.position));
   }
-  if (s.beam?.tilt        != null) beamTilt = s.beam.tilt;
+  if (s.beam?.tilt    != null) beamTilt   = s.beam.tilt;
+  if (s.beam?.speed   != null) beamSpeed  = s.beam.speed;
+  if (s.beam?.enabled != null) {
+    beamEnabled = s.beam.enabled;
+    beamCones.forEach((c) => { c.visible = beamEnabled; });
+  }
+  if (s.pixelSize != null) pixelPass.pixelSize = s.pixelSize;
   if (s.lights?.base) {
     base.red = s.lights.base.red; base.green = s.lights.base.green; base.blue = s.lights.base.blue;
     lightRed.intensity = base.red; lightGreen.intensity = base.green; lightBlue.intensity = base.blue;
@@ -308,15 +316,17 @@ function animate() {
   waterMat.uniforms.uLightBInt.value = lightBlue.intensity;
 
   if (loaded) {
-    beamAngle += dt * 0.8;
-    const ct = Math.cos(beamTilt), st = Math.sin(beamTilt);
-    beam.target.position.set(
-      beam.position.x + Math.sin(beamAngle) * 40 * ct,
-      beam.position.y - st * 40,
-      beam.position.z + Math.cos(beamAngle) * 40 * ct
-    );
-    beam.target.updateMatrixWorld();
-    beamCones.forEach((c) => c.lookAt(beam.target.position));
+    if (beamEnabled) {
+      beamAngle += dt * beamSpeed;
+      const ct = Math.cos(beamTilt), st = Math.sin(beamTilt);
+      beam.target.position.set(
+        beam.position.x + Math.sin(beamAngle) * 40 * ct,
+        beam.position.y - st * 40,
+        beam.position.z + Math.cos(beamAngle) * 40 * ct
+      );
+      beam.target.updateMatrixWorld();
+      beamCones.forEach((c) => c.lookAt(beam.target.position));
+    }
 
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);

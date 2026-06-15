@@ -1,10 +1,10 @@
 {
   "water": {
     "posY": 3.5,
-    "normalStrength": 2.5,
-    "speed": 0.005,
-    "scale": 0.08,
-    "opacity": 0.46,
+    "normalStrength": 5,
+    "speed": 0,
+    "scale": 0.065,
+    "opacity": 0.76,
     "baseColor": "#070a10",
     "wavesEnabled": 1,
     "texMix": 0
@@ -13,12 +13,12 @@
     "pos": { "x": -0.4, "y": 8.64, "z": -0.95 },
     "tilt": 0.3,
     "speed": 0.8,
-    "lengthScale": 0.45,
+    "lengthScale": 1,
     "colorHex": "fff8e8",
-    "enabled": true
+    "enabled": false
   },
   "lights": {
-    "base": { "red": 80, "green": 40, "blue": 150 },
+    "base": { "red": 102, "green": 82, "blue": 68 },
     "red":   [-4.3, 6, -3.5],
     "green": [2.8,  6, -4.6],
     "blue":  [-1.2, 6.3, 3.8]
@@ -28,5 +28,5 @@
     "threshold": 0.55,
     "radius": 0.5
   },
-  "pixelSize": 2
+  "pixelSize": 4.75
 }

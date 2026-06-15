@@ -116,12 +116,11 @@ const waterMat = new THREE.ShaderMaterial({
       return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
     float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.5;}return v;}
 
-    vec3 pointLight(vec3 N, vec3 V, vec3 lPos, vec3 lCol, float lInt){
+    vec3 diffuseBlob(vec3 lPos, vec3 lCol, float lInt){
+      /* flat surface normal — smooth color gradient, no wave flicker */
       vec3 L = normalize(lPos - vWPos);
-      float diff = max(dot(N, L), 0.0);
-      vec3 H = normalize(L + V);
-      float spec = pow(max(dot(N, H), 0.0), 32.0);
-      return lCol * lInt * (diff * 0.7 + spec * 0.5);
+      float diff = max(L.y, 0.0);
+      return lCol * lInt * diff;
     }
 
     void main(){
@@ -137,14 +136,19 @@ const waterMat = new THREE.ShaderMaterial({
       vec3 N2=normalize(vec3((hL2-hR2)*uNormalStrength*.5,2.*eps,(hD2-hU2)*uNormalStrength*.5));
       vec3 N=normalize(N1+N2);
 
-      vec3 V=normalize(cameraPosition-vWPos);
-      float fres=pow(1.0-max(dot(N,V),0.0),3.0)*0.15;
+      vec3 V = normalize(cameraPosition - vWPos);
 
-      vec3 col = vec3(0.005, 0.005, 0.008);
+      /* smooth RGB color blobs — flat normal, no specular craziness */
+      vec3 col = vec3(0.004, 0.005, 0.008);
+      col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.003);
+      col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.003);
+      col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.003);
 
-      col += pointLight(N, V, uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.004);
-      col += pointLight(N, V, uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.004);
-      col += pointLight(N, V, uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.004);
+      /* wave glints — single neutral specular from wave normals only */
+      vec3 Lspec = normalize(vec3(0.2, 1.0, 0.4));
+      vec3 Hspec = normalize(Lspec + V);
+      float spec = pow(max(dot(N, Hspec), 0.0), 80.0) * 0.25;
+      col += spec * vec3(0.7, 0.8, 1.0);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>

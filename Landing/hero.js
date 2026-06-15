@@ -115,7 +115,6 @@ const waterMat = new THREE.ShaderMaterial({
     #include <fog_pars_fragment>
     varying float vH;
     varying vec3 vWPos;
-    uniform vec3 cameraPosition;
     void main(){
       /* derive surface normal from screen-space height derivatives */
       float dhx=dFdx(vH)*7.0;
@@ -144,6 +143,7 @@ const water = new THREE.Mesh(waterGeo, waterMat);
 water.position.y = -0.3;
 scene.add(water);
 
+const beamCones = [];
 let beamAngle = 0;
 const beamTilt = -0.349;
 const size = new THREE.Vector3();
@@ -173,6 +173,35 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
   lightBlue.position.set(-1.2, 6.3, 3.8);   lightBlue.distance = reach;  lightBlue.intensity = base.blue;
 
   beam.position.set(-0.40, 8.64, -0.95);
+  const beamLength = Math.max(size.x, size.z) * 1.4;
+
+  const bVert = `
+    uniform float uHeight;
+    varying float vFade;
+    void main(){
+      vFade=clamp(1.0-(-position.z/uHeight),0.0,1.0);
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    }`;
+  const bFrag = `
+    uniform vec3 uColor;
+    uniform float uOpacity;
+    varying float vFade;
+    void main(){ gl_FragColor=vec4(uColor,uOpacity*vFade*vFade); }`;
+
+  [{ r: 0.5, o: 0.18 }, { r: 1.0, o: 0.08 }, { r: 1.85, o: 0.03 }].forEach(({ r, o }) => {
+    const geo = new THREE.ConeGeometry(beamLength * Math.tan(Math.PI / 18) * r, beamLength, 48, 1, true);
+    geo.translate(0, -beamLength / 2, 0);
+    geo.rotateX(Math.PI / 2);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(0xfff8e8) }, uOpacity: { value: o }, uHeight: { value: beamLength } },
+      vertexShader: bVert, fragmentShader: bFrag,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    });
+    const cone = new THREE.Mesh(geo, mat);
+    cone.position.copy(beam.position);
+    scene.add(cone);
+    beamCones.push(cone);
+  });
 
   loaderEl.classList.add('is-hidden');
   loaded = true;
@@ -190,6 +219,16 @@ function animate() {
   waterMat.uniforms.uTime.value = t;
 
   if (loaded) {
+    beamAngle += dt * 0.8;
+    const ct = Math.cos(beamTilt), st = Math.sin(beamTilt);
+    beam.target.position.set(
+      beam.position.x + Math.sin(beamAngle) * 40 * ct,
+      beam.position.y - st * 40,
+      beam.position.z + Math.cos(beamAngle) * 40 * ct
+    );
+    beam.target.updateMatrixWorld();
+    beamCones.forEach(c => c.lookAt(beam.target.position));
+
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);
     lightBlue.intensity  = base.blue  * (1 + Math.sin(t * 2.5 + 2) * 0.12);

@@ -83,9 +83,9 @@ const waterPos = waterGeo.attributes.position;
 const waterBaseY = new Float32Array(waterPos.count);
 for (let i = 0; i < waterPos.count; i++) waterBaseY[i] = waterPos.getY(i);
 
-let beamCone = null;
+const beamCones = [];
 let beamAngle = 0;
-const beamTilt = 0.3;
+const beamTilt = -0.349;
 const size = new THREE.Vector3();
 let loaded = false;
 
@@ -114,36 +114,49 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
 
   beam.position.set(-0.40, 8.64, -0.95);
   const beamLength = Math.max(size.x, size.z) * 1.4;
-  const beamRadius = beamLength * Math.tan(Math.PI / 18);
-  const coneGeo = new THREE.ConeGeometry(beamRadius, beamLength, 40, 1, true);
-  coneGeo.translate(0, -beamLength / 2, 0);
-  coneGeo.rotateX(Math.PI / 2);
-  const coneMat = new THREE.ShaderMaterial({
-    uniforms: {
-      uColor: { value: new THREE.Color(0xfff0c0) },
-      uOpacity: { value: 0.35 },
-      uHeight: { value: beamLength },
-    },
-    vertexShader: `
-      uniform float uHeight;
-      varying float vFade;
-      void main() {
-        vFade = clamp(1.0 - (-position.z / uHeight), 0.0, 1.0);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }`,
-    fragmentShader: `
-      uniform vec3 uColor;
-      uniform float uOpacity;
-      varying float vFade;
-      void main() { gl_FragColor = vec4(uColor, uOpacity * vFade); }`,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
+
+  const vertexShader = `
+    uniform float uHeight;
+    varying float vFade;
+    void main() {
+      vFade = clamp(1.0 - (-position.z / uHeight), 0.0, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`;
+  const fragmentShader = `
+    uniform vec3 uColor;
+    uniform float uOpacity;
+    varying float vFade;
+    void main() { gl_FragColor = vec4(uColor, uOpacity * vFade * vFade); }`;
+
+  /* 3 nested cones — inner sharp core + 2 wide soft halos */
+  const layers = [
+    { radiusMult: 0.5,  opacity: 0.22 },
+    { radiusMult: 1.0,  opacity: 0.10 },
+    { radiusMult: 1.85, opacity: 0.04 },
+  ];
+
+  layers.forEach(({ radiusMult, opacity }) => {
+    const r = beamLength * Math.tan(Math.PI / 18) * radiusMult;
+    const geo = new THREE.ConeGeometry(r, beamLength, 48, 1, true);
+    geo.translate(0, -beamLength / 2, 0);
+    geo.rotateX(Math.PI / 2);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uColor:   { value: new THREE.Color(0xfff8e8) },
+        uOpacity: { value: opacity },
+        uHeight:  { value: beamLength },
+      },
+      vertexShader, fragmentShader,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    const cone = new THREE.Mesh(geo, mat);
+    cone.position.copy(beam.position);
+    scene.add(cone);
+    beamCones.push(cone);
   });
-  beamCone = new THREE.Mesh(coneGeo, coneMat);
-  beamCone.position.copy(beam.position);
-  scene.add(beamCone);
 
   loaderEl.classList.add('is-hidden');
   loaded = true;
@@ -180,7 +193,7 @@ function animate() {
       beam.position.z + Math.cos(beamAngle) * 40 * ct
     );
     beam.target.updateMatrixWorld();
-    if (beamCone) beamCone.lookAt(beam.target.position);
+    beamCones.forEach(c => c.lookAt(beam.target.position));
 
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);

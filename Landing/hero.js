@@ -81,7 +81,7 @@ beam.castShadow = false;
 scene.add(beam, beam.target);
 
 /* ── WATER PLANE — GPU Perlin fBm ─────────────────────── */
-const waterGeo = new THREE.PlaneGeometry(500, 500, 120, 120);
+const waterGeo = new THREE.PlaneGeometry(500, 500, 4, 4);
 waterGeo.rotateX(-Math.PI / 2);
 
 const waterMat = new THREE.ShaderMaterial({
@@ -91,21 +91,9 @@ const waterMat = new THREE.ShaderMaterial({
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
-    uniform float uTime;
-    varying float vH;
     varying vec3 vWPos;
-    float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
-    float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
-      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
-    float fbm(vec2 p){float v=0.,a=.55;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.48;}return v;}
     void main(){
-      vec3 pos=position;
-      vec2 uv=pos.xz*0.055+vec2(uTime*-0.07,uTime*-0.045);
-      float h=fbm(uv);
-      vH=h;
-      float falloff=1.0-smoothstep(12.0,35.0,length(pos.xz));
-      pos.y+=(h-.5)*7.0*falloff;
-      vec4 wPos=modelMatrix*vec4(pos,1.0);
+      vec4 wPos=modelMatrix*vec4(position,1.0);
       vWPos=wPos.xyz;
       vec4 mvPosition=viewMatrix*wPos;
       gl_Position=projectionMatrix*mvPosition;
@@ -113,25 +101,35 @@ const waterMat = new THREE.ShaderMaterial({
     }`,
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
-    varying float vH;
+    uniform float uTime;
     varying vec3 vWPos;
+    float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
+    float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+    float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.5;}return v;}
     void main(){
-      /* derive surface normal from screen-space height derivatives */
-      float dhx=dFdx(vH)*7.0;
-      float dhz=dFdy(vH)*7.0;
-      vec3 N=normalize(vec3(-dhx,1.0,-dhz));
+      vec2 uv =vWPos.xz*0.08+vec2(uTime*-0.06,uTime*-0.04);
+      vec2 uv2=vWPos.xz*0.13+vec2(uTime* 0.03,uTime*-0.07);
+    void main(){
+      float eps=0.04;
+      float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
+      float hD=fbm(uv-vec2(0.,eps)),hU=fbm(uv+vec2(0.,eps));
+      vec3 N1=normalize(vec3((hL-hR)*2.5,2.*eps,(hD-hU)*2.5));
+      float hL2=fbm(uv2-vec2(eps,0.)),hR2=fbm(uv2+vec2(eps,0.));
+      float hD2=fbm(uv2-vec2(0.,eps)),hU2=fbm(uv2+vec2(0.,eps));
+      vec3 N2=normalize(vec3((hL2-hR2)*1.25,2.*eps,(hD2-hU2)*1.25));
+      vec3 N=normalize(N1+N2);
 
-      vec3 L=normalize(vec3(0.4,1.0,0.6));
       vec3 V=normalize(cameraPosition-vWPos);
+      vec3 L=normalize(vec3(0.3,1.0,0.5));
       vec3 H=normalize(L+V);
+      float diff=max(dot(N,L),0.0)*0.3;
+      float spec=pow(max(dot(N,H),0.0),64.0)*0.6;
+      float fres=pow(1.0-max(dot(N,V),0.0),3.0)*0.25;
 
-      float diff=max(dot(N,L),0.0)*0.35;
-      float spec=pow(max(dot(N,H),0.0),48.0)*0.25;
-
-      vec3 trough=vec3(0.02,0.05,0.12);
-      vec3 crest =vec3(0.08,0.18,0.38);
-      vec3 col=mix(trough,crest,smoothstep(.3,.75,vH));
-      col+=diff*vec3(0.04,0.10,0.20)+spec*vec3(0.6,0.75,0.9);
+      float h=fbm(uv);
+      vec3 col=mix(vec3(0.01,0.03,0.08),vec3(0.04,0.10,0.22),h);
+      col+=diff*vec3(0.03,0.08,0.18)+spec*vec3(0.7,0.85,1.0)+fres*vec3(0.1,0.2,0.4);
       gl_FragColor=vec4(col,1.0);
       #include <fog_fragment>
     }`,

@@ -77,59 +77,71 @@ beam.castShadow = false;
 scene.add(beam);
 scene.add(beam.target);
 
-/* ── WATER PLANE — GPU fBm ────────────────────────────── */
-const waterGeo = new THREE.PlaneGeometry(500, 500, 120, 120);
+/* ── WATER — flat plane + procedural normal map ───────── */
+const waterGeo = new THREE.PlaneGeometry(500, 500, 4, 4);
 waterGeo.rotateX(-Math.PI / 2);
 const waterMat = new THREE.ShaderMaterial({
   uniforms: {
     ...THREE.UniformsLib.fog,
     uTime: { value: 0 },
-    uAmp:  { value: 7.0 },
+    uNormalStrength: { value: 2.5 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
-    uniform float uTime;
-    uniform float uAmp;
-    varying float vH;
     varying vec3 vWPos;
-    float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
-    float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
-      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
-    float fbm(vec2 p){float v=0.,a=.55;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.48;}return v;}
     void main(){
-      vec3 pos=position;
-      vec2 uv=pos.xz*0.055+vec2(uTime*-0.07,uTime*-0.045);
-      float h=fbm(uv);
-      vH=h;
-      float falloff=1.0-smoothstep(12.0,35.0,length(pos.xz));
-      pos.y+=(h-.5)*uAmp*falloff;
-      vec4 wPos=modelMatrix*vec4(pos,1.0);
-      vWPos=wPos.xyz;
-      vec4 mvPosition=viewMatrix*wPos;
-      gl_Position=projectionMatrix*mvPosition;
+      vec4 wPos = modelMatrix * vec4(position, 1.0);
+      vWPos = wPos.xyz;
+      vec4 mvPosition = viewMatrix * wPos;
+      gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
-    varying float vH;
+    uniform float uTime;
+    uniform float uNormalStrength;
     varying vec3 vWPos;
+
+    float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
+    float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+    float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.5;}return v;}
+
     void main(){
-      float dhx=dFdx(vH)*7.0;
-      float dhz=dFdy(vH)*7.0;
-      vec3 N=normalize(vec3(-dhx,1.0,-dhz));
+      vec2 uv  = vWPos.xz * 0.08 + vec2(uTime * -0.06, uTime * -0.04);
+      vec2 uv2 = vWPos.xz * 0.13 + vec2(uTime *  0.03, uTime * -0.07);
 
-      vec3 L=normalize(vec3(0.4,1.0,0.6));
-      vec3 V=normalize(cameraPosition-vWPos);
-      vec3 H=normalize(L+V);
+      float eps = 0.04;
+      /* layer 1 normals */
+      float hL = fbm(uv - vec2(eps, 0.0));
+      float hR = fbm(uv + vec2(eps, 0.0));
+      float hD = fbm(uv - vec2(0.0, eps));
+      float hU = fbm(uv + vec2(0.0, eps));
+      vec3 N1 = normalize(vec3((hL-hR)*uNormalStrength, 2.0*eps, (hD-hU)*uNormalStrength));
+      /* layer 2 — smaller detail */
+      float hL2=fbm(uv2-vec2(eps,0.0)),hR2=fbm(uv2+vec2(eps,0.0));
+      float hD2=fbm(uv2-vec2(0.0,eps)),hU2=fbm(uv2+vec2(0.0,eps));
+      vec3 N2 = normalize(vec3((hL2-hR2)*uNormalStrength*.5,2.0*eps,(hD2-hU2)*uNormalStrength*.5));
+      vec3 N  = normalize(N1 + N2);
 
-      float diff=max(dot(N,L),0.0)*0.35;
-      float spec=pow(max(dot(N,H),0.0),48.0)*0.25;
+      /* lighting */
+      vec3 V = normalize(cameraPosition - vWPos);
+      vec3 L = normalize(vec3(0.3, 1.0, 0.5));
+      vec3 H = normalize(L + V);
 
-      vec3 trough=vec3(0.02,0.05,0.12);
-      vec3 crest =vec3(0.08,0.18,0.38);
-      vec3 col=mix(trough,crest,smoothstep(.3,.75,vH));
-      col+=diff*vec3(0.04,0.10,0.20)+spec*vec3(0.6,0.75,0.9);
-      gl_FragColor=vec4(col,1.0);
+      float diff = max(dot(N, L), 0.0) * 0.3;
+      float spec = pow(max(dot(N, H), 0.0), 64.0) * 0.6;
+      float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0) * 0.25;
+
+      float h = fbm(uv);
+      vec3 deep    = vec3(0.01, 0.03, 0.08);
+      vec3 shallow = vec3(0.04, 0.10, 0.22);
+      vec3 col = mix(deep, shallow, h);
+      col += diff * vec3(0.03, 0.08, 0.18)
+           + spec * vec3(0.7, 0.85, 1.0)
+           + fres * vec3(0.1, 0.2, 0.4);
+
+      gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>
     }`,
   fog: true,
@@ -489,15 +501,15 @@ function setupWaterTool() {
   const panel = document.getElementById('waterTool');
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Water</span></div>'
-    + '<div class="pix-tool__row"><span>Amp</span>'
-    + '<input type="range" id="wt-amp" min="0" max="20" step="0.5" value="7">'
-    + '<code id="wt-amp-v">7.0</code></div>';
+    + '<div class="pix-tool__row"><span>Waves</span>'
+    + '<input type="range" id="wt-str" min="0" max="6" step="0.1" value="2.5">'
+    + '<code id="wt-str-v">2.5</code></div>';
 
-  const slider = panel.querySelector('#wt-amp');
-  const val    = panel.querySelector('#wt-amp-v');
+  const slider = panel.querySelector('#wt-str');
+  const val    = panel.querySelector('#wt-str-v');
   slider.addEventListener('input', () => {
     const v = Number(slider.value);
-    waterMat.uniforms.uAmp.value = v;
+    waterMat.uniforms.uNormalStrength.value = v;
     val.textContent = v.toFixed(1);
   });
 }

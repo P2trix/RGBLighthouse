@@ -113,7 +113,6 @@ const waterMat = new THREE.ShaderMaterial({
     #include <fog_pars_fragment>
     varying float vH;
     varying vec3 vWPos;
-    uniform vec3 cameraPosition;
     void main(){
       float dhx=dFdx(vH)*7.0;
       float dhz=dFdy(vH)*7.0;

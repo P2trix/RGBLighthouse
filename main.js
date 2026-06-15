@@ -139,19 +139,25 @@ const waterMat = new THREE.ShaderMaterial({
 
       vec3 V = normalize(cameraPosition - vWPos);
 
-      /* smooth RGB color blobs — flat normal, no specular craziness */
+      /* smooth RGB color blobs from lights */
       vec3 col = vec3(0.002, 0.003, 0.005);
       col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0022);
       col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
       col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
 
-      /* wave glints — only near lighthouse, fade to 0 at ~20 units */
+      /* topographic contour lines from fBm — fade out far from lighthouse */
+      float h = fbm(uv);
       float distFromCenter = length(vWPos.xz);
-      float waveZone = 1.0 - smoothstep(6.0, 20.0, distFromCenter);
-      vec3 Lspec = normalize(vec3(0.2, 1.0, 0.4));
-      vec3 Hspec = normalize(Lspec + V);
-      float spec = pow(max(dot(N, Hspec), 0.0), 220.0) * 0.5 * waveZone;
-      col += spec * vec3(0.8, 0.9, 1.0);
+      float waveZone = 1.0 - smoothstep(8.0, 24.0, distFromCenter);
+      float contourVal = fract(h * 8.0);
+      float lineWidth = 0.06;
+      float contour = smoothstep(lineWidth, 0.0, contourVal)
+                    + smoothstep(1.0 - lineWidth, 1.0, contourVal);
+      contour *= waveZone;
+
+      /* contour line color = mix of nearby RGB lights */
+      vec3 lineCol = col * 3.0 + vec3(0.05, 0.08, 0.15);
+      col = mix(col, lineCol, contour * 0.85);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>

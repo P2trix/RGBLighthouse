@@ -226,3 +226,26 @@ html, body {
 
 .light-tool__int { grid-area: int; width: 100%; accent-color: #6f8cff; }
 .light-tool__intval { grid-area: val; color: #8a93a3; min-width: 34px; text-align: right; }
+
+.cam-tool { top: auto; bottom: 14px; left: 14px; width: 260px; }
+.cam-tool__vals {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.cam-tool__val {
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.cam-tool__val-label { font-size: 9px; letter-spacing: 0.1em; color: #9DA4B1; display: block; margin-bottom: 3px; }
+.cam-tool__val-num   { font-size: 13px; color: #cfd6e2; font-weight: 500; }
+.cam-tool__divider   { border: none; border-top: 1px solid rgba(157,164,177,0.12); margin: 8px 0; }
+.cam-tool__limit-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.cam-tool__limit-row label { font-size: 10px; color: #9DA4B1; width: 52px; flex-shrink: 0; }
+.cam-tool__limit-row input[type=range] { flex: 1; accent-color: #6f8cff; }
+.cam-tool__limit-row code { font-size: 10px; color: #8a93a3; min-width: 26px; text-align: right; }
+.cam-tool__locked { color: #22c55e; font-size: 10px; letter-spacing: 0.08em; }
+.cam-tool__warn   { color: #f59e0b; font-size: 10px; letter-spacing: 0.08em; }

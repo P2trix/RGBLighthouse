@@ -421,6 +421,73 @@ function setupBeamTool(cone, mat) {
   });
 }
 
+function setupCamTool() {
+  const panel = document.getElementById('camTool');
+  const RAD = THREE.MathUtils.radToDeg;
+
+  /* default limits */
+  controls.minPolarAngle = THREE.MathUtils.degToRad(5);
+  controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
+  controls.minDistance   = 8;
+  controls.maxDistance   = 60;
+
+  panel.innerHTML =
+    '<div class="pix-tool__head"><span>Camera</span>'
+    + '<span id="cam-status" class="cam-tool__locked">● FREE</span></div>'
+    + '<div class="cam-tool__vals">'
+    +   '<div class="cam-tool__val"><span class="cam-tool__val-label">POLAR°</span><span class="cam-tool__val-num" id="cv-polar">—</span></div>'
+    +   '<div class="cam-tool__val"><span class="cam-tool__val-label">AZIMUTH°</span><span class="cam-tool__val-num" id="cv-azim">—</span></div>'
+    +   '<div class="cam-tool__val"><span class="cam-tool__val-label">DIST</span><span class="cam-tool__val-num" id="cv-dist">—</span></div>'
+    + '</div>'
+    + '<hr class="cam-tool__divider">'
+    + '<div class="cam-tool__limit-row"><label>Min polar</label><input type="range" id="cl-minpol" min="0" max="89" step="1" value="5"><code id="cl-minpol-v">5°</code></div>'
+    + '<div class="cam-tool__limit-row"><label>Max polar</label><input type="range" id="cl-maxpol" min="1" max="90" step="1" value="85"><code id="cl-maxpol-v">85°</code></div>'
+    + '<div class="cam-tool__limit-row"><label>Min dist</label><input type="range" id="cl-mind" min="1" max="40" step="0.5" value="8"><code id="cl-mind-v">8</code></div>'
+    + '<div class="cam-tool__limit-row"><label>Max dist</label><input type="range" id="cl-maxd" min="10" max="100" step="1" value="60"><code id="cl-maxd-v">60</code></div>';
+
+  const bind = (id, fn) => {
+    const el = panel.querySelector('#' + id);
+    const out = panel.querySelector('#' + id + '-v');
+    el.addEventListener('input', () => { fn(Number(el.value)); out.textContent = el.value + (id.includes('pol') ? '°' : ''); });
+  };
+  bind('cl-minpol', v => { controls.minPolarAngle = THREE.MathUtils.degToRad(v); });
+  bind('cl-maxpol', v => { controls.maxPolarAngle = THREE.MathUtils.degToRad(v); });
+  bind('cl-mind',   v => { controls.minDistance = v; });
+  bind('cl-maxd',   v => { controls.maxDistance = v; });
+
+  const polEl   = panel.querySelector('#cv-polar');
+  const azimEl  = panel.querySelector('#cv-azim');
+  const distEl  = panel.querySelector('#cv-dist');
+  const statEl  = panel.querySelector('#cam-status');
+
+  const minPolEl = panel.querySelector('#cl-minpol');
+  const maxPolEl = panel.querySelector('#cl-maxpol');
+
+  function tick() {
+    const pol  = RAD(controls.getPolarAngle());
+    const azim = RAD(controls.getAzimuthalAngle());
+    const dist = controls.getDistance();
+
+    polEl.textContent  = pol.toFixed(1) + '°';
+    azimEl.textContent = ((azim % 360 + 360) % 360).toFixed(1) + '°';
+    distEl.textContent = dist.toFixed(1);
+
+    const minPol = RAD(controls.minPolarAngle);
+    const maxPol = RAD(controls.maxPolarAngle);
+    const atLimit = pol <= minPol + 0.5 || pol >= maxPol - 0.5
+                 || dist <= controls.minDistance + 0.1
+                 || dist >= controls.maxDistance - 0.1;
+
+    statEl.textContent = atLimit ? '● LIMIT' : '● FREE';
+    statEl.className   = atLimit ? 'cam-tool__warn' : 'cam-tool__locked';
+
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+setupCamTool();
+
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();

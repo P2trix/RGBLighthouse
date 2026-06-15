@@ -22,7 +22,6 @@ scene.background = new THREE.Color(BG);
 scene.fog = new THREE.FogExp2(BG, 0.022);
 
 const camera = new THREE.PerspectiveCamera(45, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000);
-camera.position.set(18, 15, 8);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
@@ -32,6 +31,22 @@ controls.enableZoom = false;
 controls.enablePan = false;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.4;
+
+/* match standalone scene: polar 64°, azimuth 111°, dist 22 */
+controls.minPolarAngle = THREE.MathUtils.degToRad(50);
+controls.maxPolarAngle = THREE.MathUtils.degToRad(75);
+controls.minDistance   = 16;
+controls.maxDistance   = 32;
+
+const _pol  = THREE.MathUtils.degToRad(64);
+const _azim = THREE.MathUtils.degToRad(111);
+const _dist = 22;
+camera.position.set(
+  controls.target.x + _dist * Math.sin(_pol) * Math.sin(_azim),
+  controls.target.y + _dist * Math.cos(_pol),
+  controls.target.z + _dist * Math.sin(_pol) * Math.cos(_azim)
+);
+controls.update();
 
 const composer = new EffectComposer(renderer);
 composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

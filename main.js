@@ -107,6 +107,8 @@ const waterMat = new THREE.ShaderMaterial({
     uSpeed:          { value: 0.055 },
     uScale:          { value: 0.08 },
     uOpacity:        { value: 1.0 },
+    uBaseColor:      { value: new THREE.Color(0.002, 0.003, 0.005) },
+    uWavesEnabled:   { value: 1.0 },
     uTexture:        { value: null },
     uTexMix:         { value: 0.0 },
     uLightRPos:   { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
@@ -133,6 +135,8 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uSpeed;
     uniform float uScale;
     uniform float uOpacity;
+    uniform vec3 uBaseColor;
+    uniform float uWavesEnabled;
     uniform sampler2D uTexture;
     uniform float uTexMix;
     uniform vec3 uLightRPos, uLightGPos, uLightBPos;
@@ -151,22 +155,24 @@ const waterMat = new THREE.ShaderMaterial({
     }
 
     void main(){
-      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * uSpeed;
+      float wOn = uWavesEnabled;
+      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * uSpeed * wOn;
       vec2 uv  = vWPos.xz * uScale + radial;
       vec2 uv2 = vWPos.xz * (uScale * 1.625) + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
 
       float eps = 0.04;
+      float str = uNormalStrength * wOn;
       float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
       float hD=fbm(uv-vec2(0.,eps)),hU=fbm(uv+vec2(0.,eps));
-      vec3 N1=normalize(vec3((hL-hR)*uNormalStrength,2.*eps,(hD-hU)*uNormalStrength));
+      vec3 N1=normalize(vec3((hL-hR)*str,2.*eps,(hD-hU)*str));
       float hL2=fbm(uv2-vec2(eps,0.)),hR2=fbm(uv2+vec2(eps,0.));
       float hD2=fbm(uv2-vec2(0.,eps)),hU2=fbm(uv2+vec2(0.,eps));
-      vec3 N2=normalize(vec3((hL2-hR2)*uNormalStrength*.5,2.*eps,(hD2-hU2)*uNormalStrength*.5));
+      vec3 N2=normalize(vec3((hL2-hR2)*str*.5,2.*eps,(hD2-hU2)*str*.5));
       vec3 N=normalize(N1+N2);
 
       vec3 V = normalize(cameraPosition - vWPos);
 
-      vec3 col = vec3(0.002, 0.003, 0.005);
+      vec3 col = uBaseColor;
       col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0022);
       col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
       col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
@@ -178,7 +184,7 @@ const waterMat = new THREE.ShaderMaterial({
       float lineWidth = 0.06;
       float contour = smoothstep(lineWidth, 0.0, contourVal)
                     + smoothstep(1.0 - lineWidth, 1.0, contourVal);
-      contour *= waveZone;
+      contour *= waveZone * wOn;
 
       col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
 
@@ -600,10 +606,15 @@ function setupWaterTool() {
     + `<input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">`
     + `<code id="${id}-v">${fmt ? Number(val).toFixed(fmt) : val}</code></div>`;
 
+  const initCol = '#' + waterMat.uniforms.uBaseColor.value.getHexString();
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Water</span>'
     + '<label class="pix-tool__chk"><input type="checkbox" id="wt-on" checked> on</label></div>'
-    + row('Waves',   'wt-str', 0,    6,    0.1,   2.5,   1)
+    + '<div class="pix-tool__row"><span>Color</span>'
+    + `<input type="color" id="wt-col" value="${initCol}" style="flex:0 0 auto;width:60px;height:20px"></div>`
+    + '<div class="pix-tool__row"><span>Waves</span>'
+    + '<label class="pix-tool__chk"><input type="checkbox" id="wt-waves" checked> on</label></div>'
+    + row('Str',     'wt-str', 0,    6,    0.1,   2.5,   1)
     + row('Speed',   'wt-spd', 0,    0.2,  0.005, 0.055, 3)
     + row('Scale',   'wt-scl', 0.01, 0.3,  0.005, 0.08,  3)
     + row('Opacity', 'wt-opa', 0,    1,    0.02,  1,     2)
@@ -620,6 +631,15 @@ function setupWaterTool() {
   chk.addEventListener('change', () => {
     water.visible = chk.checked;
     panel.classList.toggle('is-off', !chk.checked);
+  });
+
+  panel.querySelector('#wt-col').addEventListener('input', (e) => {
+    waterMat.uniforms.uBaseColor.value.set(e.target.value);
+  });
+
+  const wavesChk = panel.querySelector('#wt-waves');
+  wavesChk.addEventListener('change', () => {
+    waterMat.uniforms.uWavesEnabled.value = wavesChk.checked ? 1.0 : 0.0;
   });
 
   const bind = (id, fn, fmt) => {

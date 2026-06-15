@@ -135,7 +135,6 @@ const waterMat = new THREE.ShaderMaterial({
     float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.5;}return v;}
 
     vec3 diffuseBlob(vec3 lPos, vec3 lCol, float lInt){
-      /* flat surface normal — smooth color gradient, no wave flicker */
       vec3 L = normalize(lPos - vWPos);
       float diff = max(L.y, 0.0);
       return lCol * lInt * diff;
@@ -157,13 +156,11 @@ const waterMat = new THREE.ShaderMaterial({
 
       vec3 V = normalize(cameraPosition - vWPos);
 
-      /* smooth RGB color blobs from lights */
       vec3 col = vec3(0.002, 0.003, 0.005);
       col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0022);
       col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
       col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
 
-      /* topographic contour lines from fBm — fade out far from lighthouse */
       float h = fbm(uv);
       float distFromCenter = length(vWPos.xz);
       float waveZone = 1.0 - smoothstep(8.0, 24.0, distFromCenter);
@@ -185,117 +182,135 @@ const water = new THREE.Mesh(waterGeo, waterMat);
 water.position.y = 3.5;
 scene.add(water);
 
-let beamCone = null;
+/* ── BEAM STATE ─────────────────────────────────────────── */
+let beamCones = [];
+let beamEnabled = false;
 let beamSpeed = 0.8;
 let beamAngle = 0;
 let beamTilt = 0.3;
+let beamLengthScale = 1.0;
+let beamColorHex = 'fff8e8';
 
+const CONE_DEFS = [
+  { r: 0.5,  baseO: 0.18 },
+  { r: 1.0,  baseO: 0.08 },
+  { r: 1.85, baseO: 0.03 },
+];
+
+/* ── GLB MODEL LIST ─────────────────────────────────────── */
+const GLB_MODELS = [
+  { name: 'Default', url: 'lighthouse.glb' },
+  // add more: { name: 'Lighthouse v2', url: 'lighthouse2.glb' },
+];
+
+let currentModel = null;
 const loader = new GLTFLoader();
-const size = new THREE.Vector3();
+const modelSize = new THREE.Vector3();
 let loaded = false;
+let toolsInitialized = false;
 
-loader.load('lighthouse.glb', (gltf) => {
-  const model = gltf.scene;
+function loadModel(url) {
+  if (currentModel) {
+    scene.remove(currentModel);
+    currentModel.traverse((c) => {
+      if (c.isMesh) {
+        c.geometry.dispose();
+        const ms = Array.isArray(c.material) ? c.material : [c.material];
+        ms.forEach((m) => m.dispose());
+      }
+    });
+    currentModel = null;
+  }
+  beamCones.forEach((c) => { scene.remove(c); c.geometry.dispose(); c.material.dispose(); });
+  beamCones = [];
+  loaded = false;
 
-  model.traverse((child) => {
-    if (child.isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-      const mats = Array.isArray(child.material) ? child.material : [child.material];
-      mats.forEach(mat => {
-        if (mat.emissiveIntensity !== undefined) {
-          mat.emissiveIntensity = Math.max(mat.emissiveIntensity, 1.5);
-        }
-        mat.needsUpdate = true;
+  loader.load(url, (gltf) => {
+    const model = gltf.scene;
+
+    model.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        mats.forEach((mat) => {
+          if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = Math.max(mat.emissiveIntensity, 1.5);
+          mat.needsUpdate = true;
+        });
+      }
+    });
+
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    box.getSize(modelSize);
+    model.position.set(-center.x, -box.min.y, -center.z);
+    scene.add(model);
+    currentModel = model;
+
+    const reach = Math.max(modelSize.x, modelSize.z) * 1.2;
+    lightRed.position.set(-4.3, 6.0, -3.5);  lightRed.distance   = reach; lightRed.intensity   = base.red;
+    lightGreen.position.set(2.8, 6.0, -4.6); lightGreen.distance = reach; lightGreen.intensity = base.green;
+    lightBlue.position.set(-1.2, 6.3, 3.8);  lightBlue.distance  = reach; lightBlue.intensity  = base.blue;
+
+    beam.position.set(-0.40, 8.64, -0.95);
+    beam.intensity = 0;
+    beam.target.position.copy(beam.position);
+
+    const beamLength = Math.max(modelSize.x, modelSize.z) * 1.4;
+    const bVert = `uniform float uHeight;varying float vFade;void main(){vFade=clamp(1.0-(-position.z/uHeight),0.0,1.0);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
+    const bFrag = `uniform vec3 uColor;uniform float uOpacity;varying float vFade;void main(){gl_FragColor=vec4(uColor,uOpacity*vFade*vFade);}`;
+
+    CONE_DEFS.forEach((def) => {
+      const geo = new THREE.ConeGeometry(beamLength * Math.tan(Math.PI / 18) * def.r, beamLength, 48, 1, true);
+      geo.translate(0, -beamLength / 2, 0);
+      geo.rotateX(Math.PI / 2);
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uColor:   { value: new THREE.Color('#' + beamColorHex) },
+          uOpacity: { value: def.baseO },
+          uHeight:  { value: beamLength },
+        },
+        vertexShader: bVert,
+        fragmentShader: bFrag,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
       });
+      const cone = new THREE.Mesh(geo, mat);
+      cone.position.copy(beam.position);
+      cone.visible = beamEnabled;
+      cone.scale.z = beamLengthScale;
+      scene.add(cone);
+      beamCones.push(cone);
+    });
+
+    if (!toolsInitialized) {
+      setupLightTool(modelSize.y, [
+        { key: 'red',   label: 'R', light: lightRed },
+        { key: 'green', label: 'G', light: lightGreen },
+        { key: 'blue',  label: 'B', light: lightBlue },
+      ]);
+      setupBeamTool();
+      camera.position.set(18, 15, 8);
+      controls.target.set(0, 4, 0);
+      controls.update();
+      toolsInitialized = true;
     }
+
+    loaded = true;
+    revealScene();
+  }, undefined, (err) => {
+    const detail = err?.message
+      || (err?.target && `HTTP ${err.target.status} loading ${err.target.responseURL || url}`)
+      || String(err);
+    console.error('Error loading model:', detail, err);
+    loaderEl.classList.add('is-hidden');
+    errorEl.hidden = false;
+    const slot = errorEl.querySelector('.error__detail');
+    if (slot) slot.textContent = detail;
   });
-
-  const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  box.getSize(size);
-
-  model.position.x = -center.x;
-  model.position.y = -box.min.y;
-  model.position.z = -center.z;
-
-  scene.add(model);
-
-  const h = size.y;
-  const reach = Math.max(size.x, size.z) * 1.2;
-
-  lightRed.position.set(-4.3, 6.0, -3.5);
-  lightRed.distance = reach;
-  lightRed.intensity = base.red;
-
-  lightGreen.position.set(2.8, 6.0, -4.6);
-  lightGreen.distance = reach;
-  lightGreen.intensity = base.green;
-
-  lightBlue.position.set(-1.2, 6.3, 3.8);
-  lightBlue.distance = reach;
-  lightBlue.intensity = base.blue;
-
-  setupLightTool(h, [
-    { key: 'red',   label: 'R', light: lightRed },
-    { key: 'green', label: 'G', light: lightGreen },
-    { key: 'blue',  label: 'B', light: lightBlue },
-  ]);
-
-  beam.position.set(-0.40, 8.64, -0.95);
-  beam.intensity = 0;
-  beam.target.position.copy(beam.position);
-
-  const beamLength = Math.max(size.x, size.z) * 1.4;
-  const beamRadius = beamLength * Math.tan(Math.PI / 18);
-  const coneGeo = new THREE.ConeGeometry(beamRadius, beamLength, 40, 1, true);
-  coneGeo.translate(0, -beamLength / 2, 0);
-  coneGeo.rotateX(Math.PI / 2);
-  const coneMat = new THREE.ShaderMaterial({
-    uniforms: {
-      uColor: { value: new THREE.Color(0xfff0c0) },
-      uOpacity: { value: 0.35 },
-      uHeight: { value: beamLength },
-    },
-    vertexShader: `
-      uniform float uHeight;
-      varying float vFade;
-      void main() {
-        vFade = clamp(1.0 - (-position.z / uHeight), 0.0, 1.0);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }`,
-    fragmentShader: `
-      uniform vec3 uColor;
-      uniform float uOpacity;
-      varying float vFade;
-      void main() { gl_FragColor = vec4(uColor, uOpacity * vFade); }`,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
-  });
-  beamCone = new THREE.Mesh(coneGeo, coneMat);
-  beamCone.position.copy(beam.position);
-  scene.add(beamCone);
-
-  setupBeamTool(beamCone, coneMat);
-
-  camera.position.set(18, 15, 8);
-  controls.target.set(0, 4, 0);
-  controls.update();
-
-  loaded = true;
-  revealScene();
-}, undefined, (err) => {
-  const detail = err?.message
-    || (err?.target && `HTTP ${err.target.status} loading ${err.target.responseURL || 'lighthouse.glb'}`)
-    || String(err);
-  console.error('Error loading model:', detail, err);
-  loaderEl.classList.add('is-hidden');
-  errorEl.hidden = false;
-  const slot = errorEl.querySelector('.error__detail');
-  if (slot) slot.textContent = detail;
-});
+}
 
 function revealScene() {
   loaderEl.classList.add('is-hidden');
@@ -443,7 +458,7 @@ function setupPixelTool(renderPass, pixelPass) {
   setEnabled(true);
 }
 
-function setupBeamTool(cone, mat) {
+function setupBeamTool() {
   const panel = document.getElementById('beamTool');
   const row = (label, id, min, max, step, val) =>
     `<div class="pix-tool__row"><span>${label}</span>`
@@ -453,12 +468,12 @@ function setupBeamTool(cone, mat) {
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Beam</span>'
     + '<label class="pix-tool__chk"><input type="checkbox" id="bm-on"> on</label></div>'
-    + row('Opacity', 'bm-opa', 0, 0.8, 0.01, mat.uniforms.uOpacity.value)
-    + row('Speed', 'bm-spd', 0, 3, 0.05, beamSpeed)
-    + row('Length', 'bm-len', 0.3, 2, 0.05, 1)
-    + row('Angle', 'bm-ang', -20, 90, 1, Math.round((beamTilt * 180) / Math.PI))
+    + row('Opacity', 'bm-opa', 0, 1.5, 0.05, 1.0)
+    + row('Speed',   'bm-spd', 0, 3,   0.05, beamSpeed)
+    + row('Length',  'bm-len', 0.3, 2, 0.05, 1)
+    + row('Angle',   'bm-ang', -20, 90, 1, Math.round((beamTilt * 180) / Math.PI))
     + '<div class="pix-tool__row"><span>Color</span>'
-    + `<input type="color" id="bm-col" value="#${mat.uniforms.uColor.value.getHexString()}"></div>`
+    + `<input type="color" id="bm-col" value="#${beamColorHex}"></div>`
     + '<div class="pix-tool__row"><span>Pos</span><code id="bm-pos" class="bm-pos"></code></div>'
     + '<div class="pix-tool__btns"><button id="bm-move" class="pix-tool__btn">move</button>'
     + '<button id="bm-copy" class="pix-tool__btn">copy</button></div>';
@@ -470,25 +485,35 @@ function setupBeamTool(cone, mat) {
   };
 
   const chk = panel.querySelector('#bm-on');
-  cone.visible = false;
   panel.classList.add('is-off');
   chk.addEventListener('change', () => {
-    cone.visible = chk.checked;
-    panel.classList.toggle('is-off', !chk.checked);
+    beamEnabled = chk.checked;
+    beamCones.forEach((c) => { c.visible = beamEnabled; });
+    panel.classList.toggle('is-off', !beamEnabled);
   });
 
-  bind('bm-opa', (v) => { mat.uniforms.uOpacity.value = v; });
+  bind('bm-opa', (v) => {
+    CONE_DEFS.forEach((def, i) => {
+      if (beamCones[i]) beamCones[i].material.uniforms.uOpacity.value = def.baseO * v;
+    });
+  });
   bind('bm-spd', (v) => { beamSpeed = v; });
-  bind('bm-len', (v) => { cone.scale.z = v; });
+  bind('bm-len', (v) => {
+    beamLengthScale = v;
+    beamCones.forEach((c) => { c.scale.z = v; });
+  });
   bind('bm-ang', (v) => { beamTilt = (v * Math.PI) / 180; });
 
   const col = panel.querySelector('#bm-col');
-  col.addEventListener('input', () => { mat.uniforms.uColor.value.set(col.value); });
+  col.addEventListener('input', () => {
+    beamColorHex = col.value.replace('#', '');
+    beamCones.forEach((c) => { c.material.uniforms.uColor.value.set(col.value); });
+  });
 
-  const mSize = size.y * 0.1;
+  const mSize = modelSize.y * 0.1 || 0.8;
   const marker = new THREE.Mesh(
     new THREE.BoxGeometry(mSize, mSize, mSize),
-    new THREE.MeshBasicMaterial({ color: mat.uniforms.uColor.value, wireframe: true })
+    new THREE.MeshBasicMaterial({ color: 0xfff8e8, wireframe: true })
   );
   marker.position.copy(beam.position);
   marker.visible = false;
@@ -501,7 +526,7 @@ function setupBeamTool(cone, mat) {
   gizmo.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
   gizmo.addEventListener('objectChange', () => {
     beam.position.copy(marker.position);
-    cone.position.copy(marker.position);
+    beamCones.forEach((c) => { c.position.copy(marker.position); });
     updatePos();
   });
   scene.add(gizmo);
@@ -548,8 +573,7 @@ function setupWaterTool() {
     '<div class="pix-tool__head"><span>Water</span></div>'
     + '<div class="pix-tool__row"><span>Waves</span>'
     + '<input type="range" id="wt-str" min="0" max="6" step="0.1" value="2.5">'
-    + '<code id="wt-str-v">2.5</code></div>'
-    ;
+    + '<code id="wt-str-v">2.5</code></div>';
 
   const slider = panel.querySelector('#wt-str');
   const val    = panel.querySelector('#wt-str-v');
@@ -560,11 +584,29 @@ function setupWaterTool() {
   });
 }
 
+function setupGlbTool() {
+  const panel = document.getElementById('glbTool');
+  panel.innerHTML =
+    '<div class="pix-tool__head"><span>Model</span></div>'
+    + '<div class="pix-tool__btns">'
+    + GLB_MODELS.map((m, i) =>
+        `<button class="pix-tool__btn${i === 0 ? ' is-active' : ''}" data-idx="${i}">${m.name}</button>`
+      ).join('')
+    + '</div>';
+
+  panel.querySelectorAll('[data-idx]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      panel.querySelectorAll('[data-idx]').forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      loadModel(GLB_MODELS[Number(btn.dataset.idx)].url);
+    });
+  });
+}
+
 function setupCamTool() {
   const panel = document.getElementById('camTool');
   const RAD = THREE.MathUtils.radToDeg;
 
-  /* default limits */
   controls.minPolarAngle = THREE.MathUtils.degToRad(5);
   controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
   controls.minDistance   = 8;
@@ -589,18 +631,15 @@ function setupCamTool() {
     const out = panel.querySelector('#' + id + '-v');
     el.addEventListener('input', () => { fn(Number(el.value)); out.textContent = el.value + (id.includes('pol') ? '°' : ''); });
   };
-  bind('cl-minpol', v => { controls.minPolarAngle = THREE.MathUtils.degToRad(v); });
-  bind('cl-maxpol', v => { controls.maxPolarAngle = THREE.MathUtils.degToRad(v); });
-  bind('cl-mind',   v => { controls.minDistance = v; });
-  bind('cl-maxd',   v => { controls.maxDistance = v; });
+  bind('cl-minpol', (v) => { controls.minPolarAngle = THREE.MathUtils.degToRad(v); });
+  bind('cl-maxpol', (v) => { controls.maxPolarAngle = THREE.MathUtils.degToRad(v); });
+  bind('cl-mind',   (v) => { controls.minDistance = v; });
+  bind('cl-maxd',   (v) => { controls.maxDistance = v; });
 
-  const polEl   = panel.querySelector('#cv-polar');
-  const azimEl  = panel.querySelector('#cv-azim');
-  const distEl  = panel.querySelector('#cv-dist');
-  const statEl  = panel.querySelector('#cam-status');
-
-  const minPolEl = panel.querySelector('#cl-minpol');
-  const maxPolEl = panel.querySelector('#cl-maxpol');
+  const polEl  = panel.querySelector('#cv-polar');
+  const azimEl = panel.querySelector('#cv-azim');
+  const distEl = panel.querySelector('#cv-dist');
+  const statEl = panel.querySelector('#cam-status');
 
   function tick() {
     const pol  = RAD(controls.getPolarAngle());
@@ -626,7 +665,10 @@ function setupCamTool() {
 }
 
 setupWaterTool();
+setupGlbTool();
 setupCamTool();
+
+loadModel(GLB_MODELS[0].url);
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -660,7 +702,7 @@ function animate() {
     );
     beam.target.updateMatrixWorld();
 
-    if (beamCone) beamCone.lookAt(beam.target.position);
+    beamCones.forEach((c) => c.lookAt(beam.target.position));
 
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);

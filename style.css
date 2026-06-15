@@ -236,6 +236,7 @@ html, body {
   font: inherit;
 }
 .pix-tool__btn:hover { background: rgba(157, 164, 177, 0.15); }
+.pix-tool__btn.is-active { background: rgba(111, 140, 255, 0.2); border-color: rgba(111, 140, 255, 0.55); }
 
 .light-tool__int { grid-area: int; width: 100%; accent-color: #6f8cff; }
 .light-tool__intval { grid-area: val; color: #8a93a3; min-width: 34px; text-align: right; }

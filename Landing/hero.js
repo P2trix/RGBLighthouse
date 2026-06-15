@@ -32,7 +32,6 @@ controls.enablePan = false;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.4;
 
-/* match standalone scene: polar 64°, azimuth 111°, dist 22 */
 controls.minPolarAngle = THREE.MathUtils.degToRad(50);
 controls.maxPolarAngle = THREE.MathUtils.degToRad(75);
 controls.minDistance   = 16;
@@ -80,38 +79,55 @@ const beam = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 14, 0.4, 0);
 beam.castShadow = false;
 scene.add(beam, beam.target);
 
-/* ── WATER PLANE — GPU Perlin fBm ─────────────────────── */
+/* ── WATER PLANE — GPU Perlin fBm + RGB blobs + contour ── */
 const waterGeo = new THREE.PlaneGeometry(500, 500, 4, 4);
 waterGeo.rotateX(-Math.PI / 2);
 
 const waterMat = new THREE.ShaderMaterial({
   uniforms: {
     ...THREE.UniformsLib.fog,
-    uTime: { value: 0 },
+    uTime:      { value: 0 },
+    uLightRPos: { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
+    uLightGPos: { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
+    uLightBPos: { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
+    uLightRInt: { value: 0.0 },
+    uLightGInt: { value: 0.0 },
+    uLightBInt: { value: 0.0 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
     varying vec3 vWPos;
     void main(){
-      vec4 wPos=modelMatrix*vec4(position,1.0);
-      vWPos=wPos.xyz;
-      vec4 mvPosition=viewMatrix*wPos;
-      gl_Position=projectionMatrix*mvPosition;
+      vec4 wPos = modelMatrix * vec4(position, 1.0);
+      vWPos = wPos.xyz;
+      vec4 mvPosition = viewMatrix * wPos;
+      gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
     uniform float uTime;
+    uniform vec3 uLightRPos, uLightGPos, uLightBPos;
+    uniform float uLightRInt, uLightGInt, uLightBInt;
     varying vec3 vWPos;
+
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
     float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
       return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
     float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.5;}return v;}
+
+    vec3 diffuseBlob(vec3 lPos, vec3 lCol, float lInt){
+      vec3 L = normalize(lPos - vWPos);
+      float diff = max(L.y, 0.0);
+      return lCol * lInt * diff;
+    }
+
     void main(){
-      vec2 uv =vWPos.xz*0.08+vec2(uTime*-0.06,uTime*-0.04);
-      vec2 uv2=vWPos.xz*0.13+vec2(uTime* 0.03,uTime*-0.07);
-    void main(){
-      float eps=0.04;
+      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * 0.055;
+      vec2 uv  = vWPos.xz * 0.08 + radial;
+      vec2 uv2 = vWPos.xz * 0.13 + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
+
+      float eps = 0.04;
       float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
       float hD=fbm(uv-vec2(0.,eps)),hU=fbm(uv+vec2(0.,eps));
       vec3 N1=normalize(vec3((hL-hR)*2.5,2.*eps,(hD-hU)*2.5));
@@ -120,17 +136,24 @@ const waterMat = new THREE.ShaderMaterial({
       vec3 N2=normalize(vec3((hL2-hR2)*1.25,2.*eps,(hD2-hU2)*1.25));
       vec3 N=normalize(N1+N2);
 
-      vec3 V=normalize(cameraPosition-vWPos);
-      vec3 L=normalize(vec3(0.3,1.0,0.5));
-      vec3 H=normalize(L+V);
-      float diff=max(dot(N,L),0.0)*0.3;
-      float spec=pow(max(dot(N,H),0.0),64.0)*0.6;
-      float fres=pow(1.0-max(dot(N,V),0.0),3.0)*0.25;
+      vec3 V = normalize(cameraPosition - vWPos);
 
-      float h=fbm(uv);
-      vec3 col=mix(vec3(0.01,0.03,0.08),vec3(0.04,0.10,0.22),h);
-      col+=diff*vec3(0.03,0.08,0.18)+spec*vec3(0.7,0.85,1.0)+fres*vec3(0.1,0.2,0.4);
-      gl_FragColor=vec4(col,1.0);
+      vec3 col = vec3(0.002, 0.003, 0.005);
+      col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0022);
+      col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
+      col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
+
+      float h = fbm(uv);
+      float distFromCenter = length(vWPos.xz);
+      float waveZone = 1.0 - smoothstep(8.0, 24.0, distFromCenter);
+      float contourVal = fract(h * 8.0);
+      float lineWidth = 0.06;
+      float contour = smoothstep(lineWidth, 0.0, contourVal)
+                    + smoothstep(1.0 - lineWidth, 1.0, contourVal);
+      contour *= waveZone;
+      col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
+
+      gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>
     }`,
   fog: true,
@@ -138,12 +161,12 @@ const waterMat = new THREE.ShaderMaterial({
 });
 
 const water = new THREE.Mesh(waterGeo, waterMat);
-water.position.y = -0.3;
+water.position.y = 3.5;
 scene.add(water);
 
 const beamCones = [];
 let beamAngle = 0;
-const beamTilt = -0.349;
+const beamTilt = 0.3;
 const size = new THREE.Vector3();
 let loaded = false;
 
@@ -152,7 +175,7 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
   model.traverse((child) => {
     if (child.isMesh) {
       const mats = Array.isArray(child.material) ? child.material : [child.material];
-      mats.forEach(mat => {
+      mats.forEach((mat) => {
         if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = Math.max(mat.emissiveIntensity, 1.5);
         mat.needsUpdate = true;
       });
@@ -166,13 +189,13 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
   scene.add(model);
 
   const reach = Math.max(size.x, size.z) * 1.2;
-  lightRed.position.set(-4.3, 6.0, -3.5);   lightRed.distance = reach;   lightRed.intensity = base.red;
-  lightGreen.position.set(2.8, 6.0, -4.6);  lightGreen.distance = reach; lightGreen.intensity = base.green;
-  lightBlue.position.set(-1.2, 6.3, 3.8);   lightBlue.distance = reach;  lightBlue.intensity = base.blue;
+  lightRed.position.set(-4.3, 6.0, -3.5);  lightRed.distance   = reach; lightRed.intensity   = base.red;
+  lightGreen.position.set(2.8, 6.0, -4.6); lightGreen.distance = reach; lightGreen.intensity = base.green;
+  lightBlue.position.set(-1.2, 6.3, 3.8);  lightBlue.distance  = reach; lightBlue.intensity  = base.blue;
 
   beam.position.set(-0.40, 8.64, -0.95);
-  const beamLength = Math.max(size.x, size.z) * 1.4;
 
+  const beamLength = Math.max(size.x, size.z) * 1.4;
   const bVert = `
     uniform float uHeight;
     varying float vFade;
@@ -215,6 +238,9 @@ function animate() {
   prevT = t;
 
   waterMat.uniforms.uTime.value = t;
+  waterMat.uniforms.uLightRInt.value = lightRed.intensity;
+  waterMat.uniforms.uLightGInt.value = lightGreen.intensity;
+  waterMat.uniforms.uLightBInt.value = lightBlue.intensity;
 
   if (loaded) {
     beamAngle += dt * 0.8;
@@ -225,7 +251,7 @@ function animate() {
       beam.position.z + Math.cos(beamAngle) * 40 * ct
     );
     beam.target.updateMatrixWorld();
-    beamCones.forEach(c => c.lookAt(beam.target.position));
+    beamCones.forEach((c) => c.lookAt(beam.target.position));
 
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);

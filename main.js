@@ -149,7 +149,7 @@ const waterMat = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 const water = new THREE.Mesh(waterGeo, waterMat);
-water.position.y = 4.5;
+water.position.y = 2.8;
 scene.add(water);
 
 let beamCone = null;

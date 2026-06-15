@@ -20,6 +20,20 @@
 </head>
 <body>
 
+  <!-- ── NAV ───────────────────────────────────────────── -->
+  <nav class="nav">
+    <a href="#hero" class="nav__logo" aria-label="Patryk Wenda — home">
+      <img src="logo.svg" alt="Patryk Wenda logo" class="nav__logo-img">
+      <span class="nav__logo-name">Patryk Wenda</span>
+    </a>
+    <div class="nav__links">
+      <a href="#services" class="nav__link">Services</a>
+      <a href="#work" class="nav__link">Work</a>
+      <a href="#stack" class="nav__link">Stack</a>
+      <a href="#contact" class="nav__link">Contact</a>
+    </div>
+  </nav>
+
   <!-- ── TICKER ─────────────────────────────────────────── -->
   <div class="ticker-wrap" aria-hidden="true">
     <div class="ticker">
@@ -300,7 +314,10 @@
     <div class="section__label"><span>2026</span></div>
     <div class="section__divider"></div>
     <div class="section__body footer__body">
-      <span class="footer__copy">© 2026 Patryk Wenda. All rights reserved.</span>
+      <div class="footer__brand">
+        <img src="logo.svg" alt="" class="footer__logo" aria-hidden="true">
+        <span class="footer__copy">© 2026 Patryk Wenda</span>
+      </div>
       <span class="footer__built">Built with Three.js · No frameworks hurt in the making.</span>
     </div>
   </footer>

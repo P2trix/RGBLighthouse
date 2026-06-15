@@ -14,7 +14,10 @@
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 56px;
+}
 
 body {
   background: var(--bg);
@@ -35,6 +38,64 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
+
+/* ── NAV ──────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,9,15,0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.nav__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav__logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: brightness(1);
+  transition: filter 0.2s;
+}
+.nav__logo:hover .nav__logo-img { filter: brightness(1.2); }
+
+.nav__logo-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--fg);
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav__link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.nav__link:hover { color: var(--fg); }
 
 /* ── TICKER ───────────────────────────────────────────── */
 .ticker-wrap {
@@ -742,6 +803,17 @@ body::before {
   gap: 12px;
   flex: 1;
 }
+.footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.footer__logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  opacity: 0.5;
+}
 .footer__copy, .footer__built {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -750,6 +822,11 @@ body::before {
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  .nav__links { display: none; }
+  .nav { padding: 0 20px; }
+}
+
 @media (max-width: 768px) {
   :root { --label-w: 36px; }
   .section__label span { font-size: 9px; }

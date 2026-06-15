@@ -142,13 +142,11 @@ const waterMat = new THREE.ShaderMaterial({
       vec3 V=normalize(cameraPosition-vWPos);
       float fres=pow(1.0-max(dot(N,V),0.0),3.0)*0.15;
 
-      float h=fbm(uv);
-      vec3 col=mix(vec3(0.01,0.02,0.05),vec3(0.02,0.05,0.10),h);
+      vec3 col = vec3(0.005, 0.005, 0.008);
 
-      col += pointLight(N, V, uLightRPos, vec3(1.0,0.08,0.0), uLightRInt * 0.0012);
-      col += pointLight(N, V, uLightGPos, vec3(0.0,1.0,0.2),  uLightGInt * 0.0012);
-      col += pointLight(N, V, uLightBPos, vec3(0.12,0.36,1.0),uLightBInt * 0.0012);
-      col += fres * vec3(0.1, 0.2, 0.4);
+      col += pointLight(N, V, uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0015);
+      col += pointLight(N, V, uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0015);
+      col += pointLight(N, V, uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0015);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>

@@ -139,16 +139,16 @@ const waterMat = new THREE.ShaderMaterial({
       vec3 V = normalize(cameraPosition - vWPos);
 
       /* smooth RGB color blobs — flat normal, no specular craziness */
-      vec3 col = vec3(0.004, 0.005, 0.008);
-      col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.003);
-      col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.003);
-      col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.003);
+      vec3 col = vec3(0.002, 0.003, 0.005);
+      col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0022);
+      col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
+      col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
 
-      /* wave glints — single neutral specular from wave normals only */
+      /* wave glints — small sharp specular only */
       vec3 Lspec = normalize(vec3(0.2, 1.0, 0.4));
       vec3 Hspec = normalize(Lspec + V);
-      float spec = pow(max(dot(N, Hspec), 0.0), 80.0) * 0.25;
-      col += spec * vec3(0.7, 0.8, 1.0);
+      float spec = pow(max(dot(N, Hspec), 0.0), 220.0) * 0.5;
+      col += spec * vec3(0.8, 0.9, 1.0);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>

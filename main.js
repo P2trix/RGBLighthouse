@@ -418,16 +418,21 @@ function setupLightTool(h, entries) {
 }
 
 function setupPixelTool(renderPass, pixelPass) {
+  const row = (label, id, min, max, step, val, fmt) =>
+    `<div class="pix-tool__row"><span>${label}</span>`
+    + `<input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">`
+    + `<code id="${id}-v">${fmt ? Number(val).toFixed(fmt) : val}</code></div>`;
+
   const panel = document.getElementById('pixelTool');
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Pixelate</span>'
     + '<label class="pix-tool__chk"><input type="checkbox" id="px-on" checked> on</label></div>'
-    + '<div class="pix-tool__row"><span>Size</span>'
-    + `<input type="range" id="px-size" min="1" max="16" step="0.25" value="${pixelPass.pixelSize}">`
-    + `<code id="px-sizeval">${pixelPass.pixelSize}</code></div>`
-    + '<div class="pix-tool__row"><span>CA</span>'
-    + '<input type="range" id="px-ca" min="0" max="0.02" step="0.0005" value="0">'
-    + '<code id="px-caval">0</code></div>';
+    + row('Size', 'px-size', 1, 16, 0.25, pixelPass.pixelSize)
+    + row('CA',   'px-ca',   0, 0.02, 0.0005, 0, 4)
+    + '<div class="pix-tool__head" style="margin-top:10px;border-top:1px solid rgba(157,164,177,0.12);padding-top:8px"><span>Bloom</span></div>'
+    + row('Str', 'bl-str', 0, 3,   0.05, bloom.strength,  2)
+    + row('Thr', 'bl-thr', 0, 1,   0.01, bloom.threshold, 2)
+    + row('Rad', 'bl-rad', 0, 1,   0.01, bloom.radius,    2);
 
   const chk = panel.querySelector('#px-on');
   const size = panel.querySelector('#px-size');
@@ -447,13 +452,20 @@ function setupPixelTool(renderPass, pixelPass) {
     sizeVal.textContent = v;
   });
 
-  const caSlider = panel.querySelector('#px-ca');
-  const caVal    = panel.querySelector('#px-caval');
-  caSlider.addEventListener('input', () => {
-    const v = Number(caSlider.value);
-    caPass.uniforms.uStrength.value = v;
-    caVal.textContent = v.toFixed(4);
-  });
+  const bind = (id, fn, fmt) => {
+    const el = panel.querySelector('#' + id);
+    const out = panel.querySelector('#' + id + '-v');
+    el.addEventListener('input', () => {
+      const v = Number(el.value);
+      fn(v);
+      out.textContent = fmt ? v.toFixed(fmt) : el.value;
+    });
+  };
+
+  bind('px-ca',  (v) => { caPass.uniforms.uStrength.value = v; }, 4);
+  bind('bl-str', (v) => { bloom.strength  = v; });
+  bind('bl-thr', (v) => { bloom.threshold = v; });
+  bind('bl-rad', (v) => { bloom.radius    = v; });
 
   setEnabled(true);
 }
@@ -588,18 +600,50 @@ function setupGlbTool() {
   const panel = document.getElementById('glbTool');
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Model</span></div>'
-    + '<div class="pix-tool__btns">'
+    + '<div id="glb-btns" class="pix-tool__btns">'
     + GLB_MODELS.map((m, i) =>
         `<button class="pix-tool__btn${i === 0 ? ' is-active' : ''}" data-idx="${i}">${m.name}</button>`
       ).join('')
+    + '</div>'
+    + '<div class="pix-tool__row" style="margin-top:6px">'
+    + '<input type="file" id="glb-file" accept=".glb" style="display:none">'
+    + '<button class="pix-tool__btn" id="glb-browse" style="width:100%">+ load .glb</button>'
     + '</div>';
 
-  panel.querySelectorAll('[data-idx]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      panel.querySelectorAll('[data-idx]').forEach((b) => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      loadModel(GLB_MODELS[Number(btn.dataset.idx)].url);
-    });
+  const btnsDiv = panel.querySelector('#glb-btns');
+
+  function activate(btn) {
+    btnsDiv.querySelectorAll('.pix-tool__btn').forEach((b) => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+  }
+
+  function makeBtn(idx) {
+    const btn = document.createElement('button');
+    btn.className = 'pix-tool__btn';
+    btn.dataset.idx = idx;
+    btn.textContent = GLB_MODELS[idx].name;
+    btn.addEventListener('click', () => { activate(btn); loadModel(GLB_MODELS[idx].url); });
+    return btn;
+  }
+
+  btnsDiv.querySelectorAll('[data-idx]').forEach((btn) => {
+    const idx = Number(btn.dataset.idx);
+    btn.addEventListener('click', () => { activate(btn); loadModel(GLB_MODELS[idx].url); });
+  });
+
+  const fileInput = panel.querySelector('#glb-file');
+  panel.querySelector('#glb-browse').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const name = file.name.replace(/\.glb$/i, '');
+    const idx = GLB_MODELS.push({ name, url }) - 1;
+    const btn = makeBtn(idx);
+    btnsDiv.appendChild(btn);
+    activate(btn);
+    loadModel(url);
+    fileInput.value = '';
   });
 }
 

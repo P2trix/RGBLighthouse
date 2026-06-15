@@ -86,7 +86,15 @@ waterGeo.rotateX(-Math.PI / 2);
 const waterMat = new THREE.ShaderMaterial({
   uniforms: {
     ...THREE.UniformsLib.fog,
-    uTime:      { value: 0 },
+    uTime:           { value: 0 },
+    uNormalStrength: { value: 2.5 },
+    uSpeed:          { value: 0.055 },
+    uScale:          { value: 0.08 },
+    uOpacity:        { value: 1.0 },
+    uBaseColor:      { value: new THREE.Color(0.002, 0.003, 0.005) },
+    uWavesEnabled:   { value: 1.0 },
+    uTexture:        { value: null },
+    uTexMix:         { value: 0.0 },
     uLightRPos: { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
     uLightGPos: { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
     uLightBPos: { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
@@ -107,6 +115,14 @@ const waterMat = new THREE.ShaderMaterial({
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
     uniform float uTime;
+    uniform float uNormalStrength;
+    uniform float uSpeed;
+    uniform float uScale;
+    uniform float uOpacity;
+    uniform vec3 uBaseColor;
+    uniform float uWavesEnabled;
+    uniform sampler2D uTexture;
+    uniform float uTexMix;
     uniform vec3 uLightRPos, uLightGPos, uLightBPos;
     uniform float uLightRInt, uLightGInt, uLightBInt;
     varying vec3 vWPos;
@@ -123,22 +139,24 @@ const waterMat = new THREE.ShaderMaterial({
     }
 
     void main(){
-      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * 0.055;
-      vec2 uv  = vWPos.xz * 0.08 + radial;
-      vec2 uv2 = vWPos.xz * 0.13 + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
+      float wOn = uWavesEnabled;
+      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * uSpeed * wOn;
+      vec2 uv  = vWPos.xz * uScale + radial;
+      vec2 uv2 = vWPos.xz * (uScale * 1.625) + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
 
       float eps = 0.04;
+      float str = uNormalStrength * wOn;
       float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
       float hD=fbm(uv-vec2(0.,eps)),hU=fbm(uv+vec2(0.,eps));
-      vec3 N1=normalize(vec3((hL-hR)*2.5,2.*eps,(hD-hU)*2.5));
+      vec3 N1=normalize(vec3((hL-hR)*str,2.*eps,(hD-hU)*str));
       float hL2=fbm(uv2-vec2(eps,0.)),hR2=fbm(uv2+vec2(eps,0.));
       float hD2=fbm(uv2-vec2(0.,eps)),hU2=fbm(uv2+vec2(0.,eps));
-      vec3 N2=normalize(vec3((hL2-hR2)*1.25,2.*eps,(hD2-hU2)*1.25));
+      vec3 N2=normalize(vec3((hL2-hR2)*str*.5,2.*eps,(hD2-hU2)*str*.5));
       vec3 N=normalize(N1+N2);
 
       vec3 V = normalize(cameraPosition - vWPos);
 
-      vec3 col = vec3(0.002, 0.003, 0.005);
+      vec3 col = uBaseColor;
       col += diffuseBlob(uLightRPos, vec3(1.0, 0.05, 0.0),  uLightRInt * 0.0022);
       col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
       col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
@@ -150,13 +168,17 @@ const waterMat = new THREE.ShaderMaterial({
       float lineWidth = 0.06;
       float contour = smoothstep(lineWidth, 0.0, contourVal)
                     + smoothstep(1.0 - lineWidth, 1.0, contourVal);
-      contour *= waveZone;
+      contour *= waveZone * wOn;
       col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
 
-      gl_FragColor = vec4(col, 1.0);
+      vec3 texCol = texture2D(uTexture, uv * 0.5).rgb;
+      col = mix(col, texCol, uTexMix);
+
+      gl_FragColor = vec4(col, uOpacity);
       #include <fog_fragment>
     }`,
   fog: true,
+  transparent: true,
   side: THREE.DoubleSide,
 });
 
@@ -166,7 +188,7 @@ scene.add(water);
 
 const beamCones = [];
 let beamAngle = 0;
-const beamTilt = 0.3;
+let beamTilt = 0.3;
 const size = new THREE.Vector3();
 let loaded = false;
 
@@ -223,6 +245,42 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
     scene.add(cone);
     beamCones.push(cone);
   });
+
+  /* apply saved settings from main.js debug tool (same localStorage origin) */
+  try {
+    const raw = localStorage.getItem('lighthouseSettings');
+    if (raw) {
+      const s = JSON.parse(raw);
+      const u = waterMat.uniforms;
+      if (s.water) {
+        if (s.water.posY          !== undefined) water.position.y = s.water.posY;
+        if (s.water.normalStrength !== undefined) u.uNormalStrength.value = s.water.normalStrength;
+        if (s.water.speed         !== undefined) u.uSpeed.value          = s.water.speed;
+        if (s.water.scale         !== undefined) u.uScale.value          = s.water.scale;
+        if (s.water.opacity       !== undefined) u.uOpacity.value        = s.water.opacity;
+        if (s.water.baseColor     !== undefined) u.uBaseColor.value.set(s.water.baseColor);
+        if (s.water.wavesEnabled  !== undefined) u.uWavesEnabled.value   = s.water.wavesEnabled;
+        if (s.water.texMix        !== undefined) u.uTexMix.value         = s.water.texMix;
+      }
+      if (s.beam?.pos) {
+        beam.position.set(s.beam.pos.x, s.beam.pos.y, s.beam.pos.z);
+        beamCones.forEach((c) => c.position.copy(beam.position));
+      }
+      if (s.beam?.tilt   !== undefined) beamTilt = s.beam.tilt;
+      if (s.lights?.base) {
+        base.red = s.lights.base.red; base.green = s.lights.base.green; base.blue = s.lights.base.blue;
+        lightRed.intensity = base.red; lightGreen.intensity = base.green; lightBlue.intensity = base.blue;
+      }
+      if (s.lights?.red)   lightRed.position.set(...s.lights.red);
+      if (s.lights?.green) lightGreen.position.set(...s.lights.green);
+      if (s.lights?.blue)  lightBlue.position.set(...s.lights.blue);
+      if (s.bloom) {
+        if (s.bloom.strength  !== undefined) bloom.strength  = s.bloom.strength;
+        if (s.bloom.threshold !== undefined) bloom.threshold = s.bloom.threshold;
+        if (s.bloom.radius    !== undefined) bloom.radius    = s.bloom.radius;
+      }
+    }
+  } catch (e) { /* ignore corrupt settings */ }
 
   loaderEl.classList.add('is-hidden');
   loaded = true;

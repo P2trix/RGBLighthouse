@@ -740,6 +740,63 @@ function setupGlbTool() {
   });
 }
 
+function gatherSettings() {
+  return {
+    water: {
+      posY:          water.position.y,
+      normalStrength: waterMat.uniforms.uNormalStrength.value,
+      speed:         waterMat.uniforms.uSpeed.value,
+      scale:         waterMat.uniforms.uScale.value,
+      opacity:       waterMat.uniforms.uOpacity.value,
+      baseColor:     '#' + waterMat.uniforms.uBaseColor.value.getHexString(),
+      wavesEnabled:  waterMat.uniforms.uWavesEnabled.value,
+      texMix:        waterMat.uniforms.uTexMix.value,
+    },
+    beam: {
+      pos:         { x: beam.position.x, y: beam.position.y, z: beam.position.z },
+      tilt:        beamTilt,
+      speed:       beamSpeed,
+      lengthScale: beamLengthScale,
+      colorHex:    beamColorHex,
+      enabled:     beamEnabled,
+    },
+    lights: {
+      base:  { ...base },
+      red:   [lightRed.position.x,   lightRed.position.y,   lightRed.position.z],
+      green: [lightGreen.position.x, lightGreen.position.y, lightGreen.position.z],
+      blue:  [lightBlue.position.x,  lightBlue.position.y,  lightBlue.position.z],
+    },
+    bloom: {
+      strength:  bloom.strength,
+      threshold: bloom.threshold,
+      radius:    bloom.radius,
+    },
+    pixelSize: pixelPass.pixelSize,
+  };
+}
+
+function setupSaveTool() {
+  const panel = document.getElementById('saveTool');
+  panel.innerHTML =
+    '<button class="pix-tool__btn" id="st-save" style="flex:1">Save → Landing</button>'
+    + '<button class="pix-tool__btn" id="st-json" style="padding:3px 10px">JSON</button>';
+
+  panel.querySelector('#st-save').addEventListener('click', () => {
+    localStorage.setItem('lighthouseSettings', JSON.stringify(gatherSettings()));
+    const btn = panel.querySelector('#st-save');
+    btn.textContent = '✓ Saved';
+    setTimeout(() => { btn.textContent = 'Save → Landing'; }, 1800);
+  });
+
+  panel.querySelector('#st-json').addEventListener('click', () => {
+    const json = JSON.stringify(gatherSettings(), null, 2);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.download = 'lighthouse-settings.json';
+    a.click();
+  });
+}
+
 function setupCamTool() {
   const panel = document.getElementById('camTool');
   const RAD = THREE.MathUtils.radToDeg;
@@ -803,6 +860,7 @@ function setupCamTool() {
 
 setupWaterTool();
 setupGlbTool();
+setupSaveTool();
 setupCamTool();
 
 loadModel(GLB_MODELS[0].url);

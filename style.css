@@ -242,6 +242,15 @@ html, body {
 .light-tool__intval { grid-area: val; color: #8a93a3; min-width: 34px; text-align: right; }
 
 .cam-tool { top: auto; bottom: 14px; left: 14px; width: 260px; }
+
+.save-tool {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+  z-index: 12;
+}
 .cam-tool__vals {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

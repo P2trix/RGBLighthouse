@@ -23,7 +23,8 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+scene.background = new THREE.Color(0x07090F);
+scene.fog = new THREE.FogExp2(0x07090F, 0.018);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 5, 15);
@@ -134,12 +135,12 @@ const waterMat = new THREE.ShaderMaterial({
       float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0) * 0.25;
 
       float h = fbm(uv);
-      vec3 deep    = vec3(0.01, 0.03, 0.08);
-      vec3 shallow = vec3(0.04, 0.10, 0.22);
+      vec3 deep    = vec3(0.01, 0.02, 0.05);
+      vec3 shallow = vec3(0.02, 0.05, 0.12);
       vec3 col = mix(deep, shallow, h);
-      col += diff * vec3(0.03, 0.08, 0.18)
-           + spec * vec3(0.7, 0.85, 1.0)
-           + fres * vec3(0.1, 0.2, 0.4);
+      col += diff * vec3(0.01, 0.03, 0.08)
+           + spec * vec3(0.5, 0.65, 0.9)
+           + fres * vec3(0.04, 0.08, 0.18);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>
@@ -148,7 +149,7 @@ const waterMat = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 const water = new THREE.Mesh(waterGeo, waterMat);
-water.position.y = -0.3;
+water.position.y = -3.5;
 scene.add(water);
 
 let beamCone = null;

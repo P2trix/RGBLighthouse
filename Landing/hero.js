@@ -192,6 +192,46 @@ let beamTilt = 0.3;
 const size = new THREE.Vector3();
 let loaded = false;
 
+let _pendingSettings = null;
+let _modelReady = false;
+
+fetch('settings.json')
+  .then((r) => r.ok ? r.json() : null)
+  .catch(() => null)
+  .then((s) => { _pendingSettings = s; if (_modelReady) applyHeroSettings(s); });
+
+function applyHeroSettings(s) {
+  if (!s) return;
+  const u = waterMat.uniforms;
+  if (s.water) {
+    if (s.water.posY           != null) water.position.y          = s.water.posY;
+    if (s.water.normalStrength != null) u.uNormalStrength.value   = s.water.normalStrength;
+    if (s.water.speed          != null) u.uSpeed.value            = s.water.speed;
+    if (s.water.scale          != null) u.uScale.value            = s.water.scale;
+    if (s.water.opacity        != null) u.uOpacity.value          = s.water.opacity;
+    if (s.water.baseColor      != null) u.uBaseColor.value.set(s.water.baseColor);
+    if (s.water.wavesEnabled   != null) u.uWavesEnabled.value     = s.water.wavesEnabled;
+    if (s.water.texMix         != null) u.uTexMix.value           = s.water.texMix;
+  }
+  if (s.beam?.pos) {
+    beam.position.set(s.beam.pos.x, s.beam.pos.y, s.beam.pos.z);
+    beamCones.forEach((c) => c.position.copy(beam.position));
+  }
+  if (s.beam?.tilt        != null) beamTilt = s.beam.tilt;
+  if (s.lights?.base) {
+    base.red = s.lights.base.red; base.green = s.lights.base.green; base.blue = s.lights.base.blue;
+    lightRed.intensity = base.red; lightGreen.intensity = base.green; lightBlue.intensity = base.blue;
+  }
+  if (s.lights?.red)   lightRed.position.set(...s.lights.red);
+  if (s.lights?.green) lightGreen.position.set(...s.lights.green);
+  if (s.lights?.blue)  lightBlue.position.set(...s.lights.blue);
+  if (s.bloom) {
+    if (s.bloom.strength  != null) bloom.strength  = s.bloom.strength;
+    if (s.bloom.threshold != null) bloom.threshold = s.bloom.threshold;
+    if (s.bloom.radius    != null) bloom.radius    = s.bloom.radius;
+  }
+}
+
 new GLTFLoader().load('lighthouse.glb', (gltf) => {
   const model = gltf.scene;
   model.traverse((child) => {
@@ -246,41 +286,8 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
     beamCones.push(cone);
   });
 
-  /* apply saved settings from main.js debug tool (same localStorage origin) */
-  try {
-    const raw = localStorage.getItem('lighthouseSettings');
-    if (raw) {
-      const s = JSON.parse(raw);
-      const u = waterMat.uniforms;
-      if (s.water) {
-        if (s.water.posY          !== undefined) water.position.y = s.water.posY;
-        if (s.water.normalStrength !== undefined) u.uNormalStrength.value = s.water.normalStrength;
-        if (s.water.speed         !== undefined) u.uSpeed.value          = s.water.speed;
-        if (s.water.scale         !== undefined) u.uScale.value          = s.water.scale;
-        if (s.water.opacity       !== undefined) u.uOpacity.value        = s.water.opacity;
-        if (s.water.baseColor     !== undefined) u.uBaseColor.value.set(s.water.baseColor);
-        if (s.water.wavesEnabled  !== undefined) u.uWavesEnabled.value   = s.water.wavesEnabled;
-        if (s.water.texMix        !== undefined) u.uTexMix.value         = s.water.texMix;
-      }
-      if (s.beam?.pos) {
-        beam.position.set(s.beam.pos.x, s.beam.pos.y, s.beam.pos.z);
-        beamCones.forEach((c) => c.position.copy(beam.position));
-      }
-      if (s.beam?.tilt   !== undefined) beamTilt = s.beam.tilt;
-      if (s.lights?.base) {
-        base.red = s.lights.base.red; base.green = s.lights.base.green; base.blue = s.lights.base.blue;
-        lightRed.intensity = base.red; lightGreen.intensity = base.green; lightBlue.intensity = base.blue;
-      }
-      if (s.lights?.red)   lightRed.position.set(...s.lights.red);
-      if (s.lights?.green) lightGreen.position.set(...s.lights.green);
-      if (s.lights?.blue)  lightBlue.position.set(...s.lights.blue);
-      if (s.bloom) {
-        if (s.bloom.strength  !== undefined) bloom.strength  = s.bloom.strength;
-        if (s.bloom.threshold !== undefined) bloom.threshold = s.bloom.threshold;
-        if (s.bloom.radius    !== undefined) bloom.radius    = s.bloom.radius;
-      }
-    }
-  } catch (e) { /* ignore corrupt settings */ }
+  _modelReady = true;
+  if (_pendingSettings) applyHeroSettings(_pendingSettings);
 
   loaderEl.classList.add('is-hidden');
   loaded = true;

@@ -782,10 +782,14 @@ function setupSaveTool() {
     + '<button class="pix-tool__btn" id="st-json" style="padding:3px 10px">JSON</button>';
 
   panel.querySelector('#st-save').addEventListener('click', () => {
-    localStorage.setItem('lighthouseSettings', JSON.stringify(gatherSettings()));
+    const json = JSON.stringify(gatherSettings(), null, 2);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.download = 'settings.json';
+    a.click();
     const btn = panel.querySelector('#st-save');
-    btn.textContent = '✓ Saved';
-    setTimeout(() => { btn.textContent = 'Save → Landing'; }, 1800);
+    btn.textContent = '✓ settings.json';
+    setTimeout(() => { btn.textContent = 'Save → Landing'; }, 2200);
   });
 
   panel.querySelector('#st-json').addEventListener('click', () => {

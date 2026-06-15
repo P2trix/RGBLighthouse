@@ -84,8 +84,14 @@ waterGeo.rotateX(-Math.PI / 2);
 const waterMat = new THREE.ShaderMaterial({
   uniforms: {
     ...THREE.UniformsLib.fog,
-    uTime: { value: 0 },
+    uTime:           { value: 0 },
     uNormalStrength: { value: 2.5 },
+    uLightRPos:   { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
+    uLightGPos:   { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
+    uLightBPos:   { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
+    uLightRInt:   { value: 0.0 },
+    uLightGInt:   { value: 0.0 },
+    uLightBInt:   { value: 0.0 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
@@ -101,6 +107,8 @@ const waterMat = new THREE.ShaderMaterial({
     #include <fog_pars_fragment>
     uniform float uTime;
     uniform float uNormalStrength;
+    uniform vec3 uLightRPos, uLightGPos, uLightBPos;
+    uniform float uLightRInt, uLightGInt, uLightBInt;
     varying vec3 vWPos;
 
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
@@ -108,39 +116,39 @@ const waterMat = new THREE.ShaderMaterial({
       return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
     float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.5;}return v;}
 
+    vec3 pointLight(vec3 N, vec3 V, vec3 lPos, vec3 lCol, float lInt){
+      vec3 L = normalize(lPos - vWPos);
+      float dist = length(lPos - vWPos);
+      float att = lInt / (dist * dist + 1.0);
+      float diff = max(dot(N, L), 0.0);
+      vec3 H = normalize(L + V);
+      float spec = pow(max(dot(N, H), 0.0), 48.0);
+      return lCol * att * (diff * 0.4 + spec * 1.2);
+    }
+
     void main(){
       vec2 uv  = vWPos.xz * 0.08 + vec2(uTime * -0.06, uTime * -0.04);
       vec2 uv2 = vWPos.xz * 0.13 + vec2(uTime *  0.03, uTime * -0.07);
 
       float eps = 0.04;
-      /* layer 1 normals */
-      float hL = fbm(uv - vec2(eps, 0.0));
-      float hR = fbm(uv + vec2(eps, 0.0));
-      float hD = fbm(uv - vec2(0.0, eps));
-      float hU = fbm(uv + vec2(0.0, eps));
-      vec3 N1 = normalize(vec3((hL-hR)*uNormalStrength, 2.0*eps, (hD-hU)*uNormalStrength));
-      /* layer 2 — smaller detail */
-      float hL2=fbm(uv2-vec2(eps,0.0)),hR2=fbm(uv2+vec2(eps,0.0));
-      float hD2=fbm(uv2-vec2(0.0,eps)),hU2=fbm(uv2+vec2(0.0,eps));
-      vec3 N2 = normalize(vec3((hL2-hR2)*uNormalStrength*.5,2.0*eps,(hD2-hU2)*uNormalStrength*.5));
-      vec3 N  = normalize(N1 + N2);
+      float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
+      float hD=fbm(uv-vec2(0.,eps)),hU=fbm(uv+vec2(0.,eps));
+      vec3 N1=normalize(vec3((hL-hR)*uNormalStrength,2.*eps,(hD-hU)*uNormalStrength));
+      float hL2=fbm(uv2-vec2(eps,0.)),hR2=fbm(uv2+vec2(eps,0.));
+      float hD2=fbm(uv2-vec2(0.,eps)),hU2=fbm(uv2+vec2(0.,eps));
+      vec3 N2=normalize(vec3((hL2-hR2)*uNormalStrength*.5,2.*eps,(hD2-hU2)*uNormalStrength*.5));
+      vec3 N=normalize(N1+N2);
 
-      /* lighting */
-      vec3 V = normalize(cameraPosition - vWPos);
-      vec3 L = normalize(vec3(0.3, 1.0, 0.5));
-      vec3 H = normalize(L + V);
+      vec3 V=normalize(cameraPosition-vWPos);
+      float fres=pow(1.0-max(dot(N,V),0.0),3.0)*0.15;
 
-      float diff = max(dot(N, L), 0.0) * 0.3;
-      float spec = pow(max(dot(N, H), 0.0), 64.0) * 0.6;
-      float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0) * 0.25;
+      float h=fbm(uv);
+      vec3 col=mix(vec3(0.01,0.02,0.05),vec3(0.02,0.05,0.10),h);
 
-      float h = fbm(uv);
-      vec3 deep    = vec3(0.01, 0.02, 0.05);
-      vec3 shallow = vec3(0.02, 0.05, 0.12);
-      vec3 col = mix(deep, shallow, h);
-      col += diff * vec3(0.01, 0.03, 0.08)
-           + spec * vec3(0.5, 0.65, 0.9)
-           + fres * vec3(0.04, 0.08, 0.18);
+      col += pointLight(N, V, uLightRPos, vec3(1.0,0.08,0.0), uLightRInt * 0.0012);
+      col += pointLight(N, V, uLightGPos, vec3(0.0,1.0,0.2),  uLightGInt * 0.0012);
+      col += pointLight(N, V, uLightBPos, vec3(0.12,0.36,1.0),uLightBInt * 0.0012);
+      col += fres * vec3(0.1, 0.2, 0.4);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>
@@ -149,7 +157,7 @@ const waterMat = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 const water = new THREE.Mesh(waterGeo, waterMat);
-water.position.y = 2.8;
+water.position.y = -0.3;
 scene.add(water);
 
 let beamCone = null;
@@ -601,6 +609,9 @@ function animate() {
   prevT = t;
 
   waterMat.uniforms.uTime.value = t;
+  waterMat.uniforms.uLightRInt.value = lightRed.intensity;
+  waterMat.uniforms.uLightGInt.value = lightGreen.intensity;
+  waterMat.uniforms.uLightBInt.value = lightBlue.intensity;
 
   if (loaded) {
     beamAngle += dt * beamSpeed;

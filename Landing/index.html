@@ -20,6 +20,28 @@
 </head>
 <body>
 
+  <!-- ── TICKER ─────────────────────────────────────────── -->
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker">
+      <span>SYSTEM_ONLINE</span><span class="ticker-sep">◆</span>
+      <span>PATRYK.WENDA.EXE</span><span class="ticker-sep">◆</span>
+      <span>GAME_STUDIO_v2.0.26</span><span class="ticker-sep">◆</span>
+      <span>ALL_SYSTEMS_NOMINAL</span><span class="ticker-sep">◆</span>
+      <span>3D_ENGINE_LOADED</span><span class="ticker-sep">◆</span>
+      <span>RGB_LIGHTHOUSE_ACTIVE</span><span class="ticker-sep">◆</span>
+      <span>PRESS_ANY_KEY_TO_CONTINUE</span><span class="ticker-sep">◆</span>
+      <span>Y2K_COMPLIANT</span><span class="ticker-sep">◆</span>
+      <span>SYSTEM_ONLINE</span><span class="ticker-sep">◆</span>
+      <span>PATRYK.WENDA.EXE</span><span class="ticker-sep">◆</span>
+      <span>GAME_STUDIO_v2.0.26</span><span class="ticker-sep">◆</span>
+      <span>ALL_SYSTEMS_NOMINAL</span><span class="ticker-sep">◆</span>
+      <span>3D_ENGINE_LOADED</span><span class="ticker-sep">◆</span>
+      <span>RGB_LIGHTHOUSE_ACTIVE</span><span class="ticker-sep">◆</span>
+      <span>PRESS_ANY_KEY_TO_CONTINUE</span><span class="ticker-sep">◆</span>
+      <span>Y2K_COMPLIANT</span><span class="ticker-sep">◆</span>
+    </div>
+  </div>
+
   <!-- ── HERO ──────────────────────────────────────────── -->
   <section class="section hero-section" id="hero">
     <div class="section__label">
@@ -29,11 +51,33 @@
     <div class="section__body hero__body">
 
       <canvas id="canvas"></canvas>
-      <div id="loader" class="loader"><div class="loader__spinner"></div></div>
+      <div id="loader" class="loader"><div class="loader__spinner"></div><span class="loader__text">LOADING_SCENE<span class="blink">_</span></span></div>
+
+      <!-- scanlines -->
+      <div class="scanlines" aria-hidden="true"></div>
+
+      <!-- corner brackets -->
+      <div class="corner corner--tl" aria-hidden="true"></div>
+      <div class="corner corner--tr" aria-hidden="true"></div>
+      <div class="corner corner--bl" aria-hidden="true"></div>
+      <div class="corner corner--br" aria-hidden="true"></div>
+
+      <!-- status hud -->
+      <div class="hud hud--tl" aria-hidden="true">
+        <span class="hud-dot"></span>
+        <span class="hud-label">CAM_01 / ORBIT</span>
+      </div>
+      <div class="hud hud--tr" aria-hidden="true">
+        <span class="hud-label">RGB_LIGHTHOUSE.GLB</span>
+        <span class="hud-dot hud-dot--green"></span>
+      </div>
 
       <div class="hero__text">
         <p class="tag">— Independent Game Studio</p>
-        <h1 class="hero__title">We build<br><em>worlds.</em></h1>
+        <h1 class="hero__title">
+          <span class="glitch" data-text="We build">We build</span><br>
+          <em class="glitch-em" data-text="worlds.">worlds.</em>
+        </h1>
         <p class="hero__desc">3D environments, interactive experiences<br>and game systems from scratch.</p>
         <div class="hero__links">
           <a href="#work" class="btn btn--outline">View projects</a>
@@ -43,11 +87,11 @@
 
       <div class="hero__meta">
         <div class="hero__meta-item">
-          <span class="hero__meta-num">12+</span>
+          <span class="hero__meta-num counter" data-target="12">0</span>+
           <span class="hero__meta-label">projects shipped</span>
         </div>
         <div class="hero__meta-item">
-          <span class="hero__meta-num">3</span>
+          <span class="hero__meta-num counter" data-target="3">0</span>
           <span class="hero__meta-label">game engines</span>
         </div>
         <div class="hero__meta-item">
@@ -67,7 +111,7 @@
     <div class="section__divider"></div>
     <div class="section__body">
       <div class="services__head">
-        <h2 class="section-title">What we do.</h2>
+        <h2 class="section-title reveal-title">What we do.</h2>
         <p class="section-sub">End-to-end game production — from concept to launch.</p>
       </div>
       <div class="services__grid">
@@ -95,6 +139,28 @@
     </div>
   </section>
 
+  <!-- ── MARQUEE DIVIDER ────────────────────────────────── -->
+  <div class="marquee-divider" aria-hidden="true">
+    <div class="marquee-track">
+      <span>GAME DESIGN</span><span class="msep">✦</span>
+      <span>3D ART</span><span class="msep">✦</span>
+      <span>NARRATIVE</span><span class="msep">✦</span>
+      <span>WEBGL</span><span class="msep">✦</span>
+      <span>THREE.JS</span><span class="msep">✦</span>
+      <span>UNITY</span><span class="msep">✦</span>
+      <span>UNREAL</span><span class="msep">✦</span>
+      <span>BLENDER</span><span class="msep">✦</span>
+      <span>GAME DESIGN</span><span class="msep">✦</span>
+      <span>3D ART</span><span class="msep">✦</span>
+      <span>NARRATIVE</span><span class="msep">✦</span>
+      <span>WEBGL</span><span class="msep">✦</span>
+      <span>THREE.JS</span><span class="msep">✦</span>
+      <span>UNITY</span><span class="msep">✦</span>
+      <span>UNREAL</span><span class="msep">✦</span>
+      <span>BLENDER</span><span class="msep">✦</span>
+    </div>
+  </div>
+
   <!-- ── WORK ──────────────────────────────────────────── -->
   <section class="section" id="work">
     <div class="section__label">
@@ -103,7 +169,7 @@
     <div class="section__divider"></div>
     <div class="section__body">
       <div class="work__head">
-        <h2 class="section-title">Selected projects.</h2>
+        <h2 class="section-title reveal-title">Selected projects.</h2>
         <div class="work__tabs">
           <button class="tab is-active" data-filter="all">All</button>
           <button class="tab" data-filter="3d">3D</button>
@@ -114,7 +180,9 @@
       <div class="work__grid">
         <article class="project-card" data-cat="3d web">
           <div class="project-card__img">
-            <div class="project-card__placeholder project-card__placeholder--lighthouse"></div>
+            <div class="project-card__placeholder project-card__placeholder--lighthouse">
+              <span class="card-chip">LIVE</span>
+            </div>
           </div>
           <div class="project-card__body">
             <div class="project-card__top">
@@ -129,7 +197,9 @@
 
         <article class="project-card" data-cat="game">
           <div class="project-card__img">
-            <div class="project-card__placeholder project-card__placeholder--game"></div>
+            <div class="project-card__placeholder project-card__placeholder--game">
+              <span class="card-chip card-chip--wip">WIP</span>
+            </div>
           </div>
           <div class="project-card__body">
             <div class="project-card__top">
@@ -144,7 +214,9 @@
 
         <article class="project-card" data-cat="3d">
           <div class="project-card__img">
-            <div class="project-card__placeholder project-card__placeholder--env"></div>
+            <div class="project-card__placeholder project-card__placeholder--env">
+              <span class="card-chip card-chip--wip">WIP</span>
+            </div>
           </div>
           <div class="project-card__body">
             <div class="project-card__top">
@@ -167,7 +239,7 @@
     </div>
     <div class="section__divider"></div>
     <div class="section__body">
-      <h2 class="section-title">Tools of the trade.</h2>
+      <h2 class="section-title reveal-title">Tools of the trade.</h2>
       <div class="stack__grid">
         <div class="stack__group">
           <p class="stack__group-label">Engines</p>
@@ -213,7 +285,7 @@
     <div class="section__divider"></div>
     <div class="section__body contact__body">
       <p class="contact__pre">Ready to build something?</p>
-      <h2 class="contact__title">Let's talk.</h2>
+      <h2 class="contact__title glitch" data-text="Let's talk.">Let's talk.</h2>
       <a href="mailto:p2trix@gmail.com" class="contact__email">p2trix@gmail.com</a>
       <div class="contact__socials">
         <a href="https://github.com/P2trix" class="social-link" target="_blank" rel="noopener">GitHub</a>
@@ -235,6 +307,7 @@
 
   <script type="module" src="hero.js"></script>
   <script>
+    /* tabs */
     const tabs = document.querySelectorAll('.tab');
     const cards = document.querySelectorAll('.project-card');
     tabs.forEach(tab => {
@@ -243,11 +316,44 @@
         tab.classList.add('is-active');
         const filter = tab.dataset.filter;
         cards.forEach(card => {
-          const show = filter === 'all' || card.dataset.cat.includes(filter);
-          card.style.display = show ? '' : 'none';
+          card.style.display = filter === 'all' || card.dataset.cat.includes(filter) ? '' : 'none';
         });
       });
     });
+
+    /* scroll reveal */
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-revealed'); io.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal-title, .service-card, .project-card, .stack__group').forEach(el => io.observe(el));
+
+    /* counter */
+    const counters = document.querySelectorAll('.counter');
+    const cio = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target, target = +el.dataset.target, dur = 1200;
+        const start = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - start) / dur, 1);
+          el.textContent = Math.round(p * target);
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        cio.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(el => cio.observe(el));
+
+    /* random glitch trigger */
+    const glitchEls = document.querySelectorAll('.glitch, .glitch-em');
+    function randomGlitch() {
+      const el = glitchEls[Math.floor(Math.random() * glitchEls.length)];
+      el.classList.add('is-glitching');
+      setTimeout(() => el.classList.remove('is-glitching'), 400);
+      setTimeout(randomGlitch, 1800 + Math.random() * 3000);
+    }
+    setTimeout(randomGlitch, 2000);
   </script>
 </body>
 </html>

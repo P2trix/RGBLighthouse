@@ -104,6 +104,8 @@ const waterMat = new THREE.ShaderMaterial({
     ...THREE.UniformsLib.fog,
     uTime:           { value: 0 },
     uNormalStrength: { value: 2.5 },
+    uSpeed:          { value: 0.055 },
+    uScale:          { value: 0.08 },
     uLightRPos:   { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
     uLightGPos:   { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
     uLightBPos:   { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
@@ -125,6 +127,8 @@ const waterMat = new THREE.ShaderMaterial({
     #include <fog_pars_fragment>
     uniform float uTime;
     uniform float uNormalStrength;
+    uniform float uSpeed;
+    uniform float uScale;
     uniform vec3 uLightRPos, uLightGPos, uLightBPos;
     uniform float uLightRInt, uLightGInt, uLightBInt;
     varying vec3 vWPos;
@@ -141,9 +145,9 @@ const waterMat = new THREE.ShaderMaterial({
     }
 
     void main(){
-      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * 0.055;
-      vec2 uv  = vWPos.xz * 0.08 + radial;
-      vec2 uv2 = vWPos.xz * 0.13 + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
+      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * uSpeed;
+      vec2 uv  = vWPos.xz * uScale + radial;
+      vec2 uv2 = vWPos.xz * (uScale * 1.625) + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
 
       float eps = 0.04;
       float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
@@ -581,19 +585,37 @@ function setupBeamTool() {
 
 function setupWaterTool() {
   const panel = document.getElementById('waterTool');
-  panel.innerHTML =
-    '<div class="pix-tool__head"><span>Water</span></div>'
-    + '<div class="pix-tool__row"><span>Waves</span>'
-    + '<input type="range" id="wt-str" min="0" max="6" step="0.1" value="2.5">'
-    + '<code id="wt-str-v">2.5</code></div>';
+  const row = (label, id, min, max, step, val, fmt) =>
+    `<div class="pix-tool__row"><span>${label}</span>`
+    + `<input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">`
+    + `<code id="${id}-v">${fmt ? Number(val).toFixed(fmt) : val}</code></div>`;
 
-  const slider = panel.querySelector('#wt-str');
-  const val    = panel.querySelector('#wt-str-v');
-  slider.addEventListener('input', () => {
-    const v = Number(slider.value);
-    waterMat.uniforms.uNormalStrength.value = v;
-    val.textContent = v.toFixed(1);
+  panel.innerHTML =
+    '<div class="pix-tool__head"><span>Water</span>'
+    + '<label class="pix-tool__chk"><input type="checkbox" id="wt-on" checked> on</label></div>'
+    + row('Waves', 'wt-str', 0,    6,    0.1,    2.5,   1)
+    + row('Speed', 'wt-spd', 0,    0.2,  0.005,  0.055, 3)
+    + row('Scale', 'wt-scl', 0.01, 0.3,  0.005,  0.08,  3);
+
+  const chk = panel.querySelector('#wt-on');
+  chk.addEventListener('change', () => {
+    water.visible = chk.checked;
+    panel.classList.toggle('is-off', !chk.checked);
   });
+
+  const bind = (id, fn, fmt) => {
+    const el  = panel.querySelector('#' + id);
+    const out = panel.querySelector('#' + id + '-v');
+    el.addEventListener('input', () => {
+      const v = Number(el.value);
+      fn(v);
+      out.textContent = fmt ? v.toFixed(fmt) : el.value;
+    });
+  };
+
+  bind('wt-str', (v) => { waterMat.uniforms.uNormalStrength.value = v; }, 1);
+  bind('wt-spd', (v) => { waterMat.uniforms.uSpeed.value = v; },          3);
+  bind('wt-scl', (v) => { waterMat.uniforms.uScale.value = v; },          3);
 }
 
 function setupGlbTool() {

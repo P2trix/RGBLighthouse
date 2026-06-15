@@ -67,7 +67,7 @@ scene.add(beam, beam.target);
 
 /* ── WATER PLANE ──────────────────────────────────────── */
 const WATER_SEGS = 80;
-const waterGeo = new THREE.PlaneGeometry(120, 120, WATER_SEGS, WATER_SEGS);
+const waterGeo = new THREE.PlaneGeometry(500, 500, WATER_SEGS, WATER_SEGS);
 waterGeo.rotateX(-Math.PI / 2);
 const waterMat = new THREE.MeshStandardMaterial({
   color: 0x07090F,

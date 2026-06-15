@@ -78,46 +78,41 @@ scene.add(beam);
 scene.add(beam.target);
 
 /* ── WATER PLANE — GPU fBm ────────────────────────────── */
-const waterGeo = new THREE.PlaneGeometry(500, 500, 100, 100);
+const waterGeo = new THREE.PlaneGeometry(500, 500, 120, 120);
 waterGeo.rotateX(-Math.PI / 2);
 const waterMat = new THREE.ShaderMaterial({
   uniforms: {
     ...THREE.UniformsLib.fog,
-    uTime:  { value: 0 },
-    uColor: { value: new THREE.Color(0x000000) },
+    uTime: { value: 0 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
     uniform float uTime;
-    float hash(vec2 p) {
-      p = fract(p * vec2(127.1, 311.7));
-      p += dot(p, p + 19.19);
-      return fract(p.x * p.y);
-    }
-    float vnoise(vec2 p) {
-      vec2 i = floor(p), f = fract(p);
-      vec2 u = f * f * (3.0 - 2.0 * f);
-      return mix(
-        mix(hash(i), hash(i + vec2(1,0)), u.x),
-        mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x), u.y);
-    }
-    float fbm(vec2 p) {
-      float v = 0.0, a = 0.55;
-      for (int i = 0; i < 5; i++) { v += a * vnoise(p); p = p * 2.1 + vec2(1.7, 9.2); a *= 0.48; }
-      return v;
-    }
-    void main() {
-      vec3 pos = position;
-      vec2 uv  = pos.xz * 0.14 + vec2(uTime * -0.09, uTime * -0.06);
-      pos.y   += (fbm(uv) - 0.5) * 3.2;
-      vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-      gl_Position = projectionMatrix * mvPos;
+    varying float vH;
+    float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
+    float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+    float fbm(vec2 p){float v=0.,a=.55;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.1+vec2(1.7,9.2);a*=.48;}return v;}
+    void main(){
+      vec3 pos=position;
+      vec2 uv=pos.xz*0.055+vec2(uTime*-0.07,uTime*-0.045);
+      float h=fbm(uv);
+      vH=h;
+      pos.y+=(h-.5)*7.0;
+      vec4 mvPos=modelViewMatrix*vec4(pos,1.0);
+      gl_Position=projectionMatrix*mvPos;
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
     #include <fog_pars_fragment>
-    uniform vec3 uColor;
-    void main() { gl_FragColor = vec4(uColor, 1.0); #include <fog_fragment> }`,
+    varying float vH;
+    void main(){
+      vec3 trough=vec3(0.01,0.02,0.05);
+      vec3 crest =vec3(0.06,0.09,0.18);
+      vec3 col=mix(trough,crest,smoothstep(.3,.75,vH));
+      gl_FragColor=vec4(col,1.0);
+      #include <fog_fragment>
+    }`,
   fog: true,
   side: THREE.DoubleSide,
 });
@@ -381,7 +376,7 @@ function setupBeamTool(cone, mat) {
 
   panel.innerHTML =
     '<div class="pix-tool__head"><span>Beam</span>'
-    + '<label class="pix-tool__chk"><input type="checkbox" id="bm-on" checked> on</label></div>'
+    + '<label class="pix-tool__chk"><input type="checkbox" id="bm-on"> on</label></div>'
     + row('Opacity', 'bm-opa', 0, 0.8, 0.01, mat.uniforms.uOpacity.value)
     + row('Speed', 'bm-spd', 0, 3, 0.05, beamSpeed)
     + row('Length', 'bm-len', 0.3, 2, 0.05, 1)
@@ -399,6 +394,8 @@ function setupBeamTool(cone, mat) {
   };
 
   const chk = panel.querySelector('#bm-on');
+  cone.visible = false;
+  panel.classList.add('is-off');
   chk.addEventListener('change', () => {
     cone.visible = chk.checked;
     panel.classList.toggle('is-off', !chk.checked);

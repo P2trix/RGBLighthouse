@@ -36,6 +36,7 @@ controls.target.set(0, 2, 0);
 const composer = new EffectComposer(renderer);
 composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 composer.setSize(window.innerWidth, window.innerHeight);
+
 const renderPass = new RenderPass(scene, camera);
 renderPass.enabled = false;
 composer.addPass(renderPass);
@@ -48,7 +49,9 @@ composer.addPass(pixelPass);
 
 const bloom = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
-  0.45, 0.5, 0.55
+  0.45,
+  0.5,
+  0.55
 );
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -73,6 +76,11 @@ const beam = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 14, 0.4, 0);
 beam.castShadow = false;
 scene.add(beam);
 scene.add(beam.target);
+
+let beamCone = null;
+let beamSpeed = 0.8;
+let beamAngle = 0;
+let beamTilt = 0.3;
 
 const loader = new GLTFLoader();
 const size = new THREE.Vector3();
@@ -126,8 +134,43 @@ loader.load('lighthouse.glb', (gltf) => {
     { key: 'blue',  label: 'B', light: lightBlue },
   ]);
 
-  beam.position.set(0, h * 0.95, 0);
-  beam.intensity = 6;
+  beam.position.set(-0.40, 8.64, -0.95);
+  beam.intensity = 0;
+  beam.target.position.copy(beam.position);
+
+  const beamLength = Math.max(size.x, size.z) * 1.4;
+  const beamRadius = beamLength * Math.tan(Math.PI / 18);
+  const coneGeo = new THREE.ConeGeometry(beamRadius, beamLength, 40, 1, true);
+  coneGeo.translate(0, -beamLength / 2, 0);
+  coneGeo.rotateX(Math.PI / 2);
+  const coneMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: new THREE.Color(0xfff0c0) },
+      uOpacity: { value: 0.35 },
+      uHeight: { value: beamLength },
+    },
+    vertexShader: `
+      uniform float uHeight;
+      varying float vFade;
+      void main() {
+        vFade = clamp(1.0 - (-position.z / uHeight), 0.0, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      varying float vFade;
+      void main() { gl_FragColor = vec4(uColor, uOpacity * vFade); }`,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  beamCone = new THREE.Mesh(coneGeo, coneMat);
+  beamCone.position.copy(beam.position);
+  scene.add(beamCone);
+
+  setupBeamTool(beamCone, coneMat);
 
   camera.position.set(18, 15, 8);
   controls.target.set(0, 4, 0);
@@ -136,7 +179,9 @@ loader.load('lighthouse.glb', (gltf) => {
   loaded = true;
   revealScene();
 }, undefined, (err) => {
-  const detail = err?.message || String(err);
+  const detail = err?.message
+    || (err?.target && `HTTP ${err.target.status} loading ${err.target.responseURL || 'lighthouse.glb'}`)
+    || String(err);
   console.error('Error loading model:', detail, err);
   loaderEl.classList.add('is-hidden');
   errorEl.hidden = false;
@@ -259,24 +304,121 @@ function setupPixelTool(renderPass, pixelPass) {
     + `<code id="px-sizeval">${pixelPass.pixelSize}</code></div>`;
 
   const chk = panel.querySelector('#px-on');
-  const sizeInput = panel.querySelector('#px-size');
+  const size = panel.querySelector('#px-size');
   const sizeVal = panel.querySelector('#px-sizeval');
 
   function setEnabled(on) {
     pixelPass.enabled = on;
     renderPass.enabled = !on;
-    sizeInput.disabled = !on;
+    size.disabled = !on;
     panel.classList.toggle('is-off', !on);
   }
   chk.addEventListener('change', () => setEnabled(chk.checked));
 
-  sizeInput.addEventListener('input', () => {
-    const v = Number(sizeInput.value);
+  size.addEventListener('input', () => {
+    const v = Number(size.value);
     pixelPass.setPixelSize(v);
     sizeVal.textContent = v;
   });
 
   setEnabled(true);
+}
+
+function setupBeamTool(cone, mat) {
+  const panel = document.getElementById('beamTool');
+  const row = (label, id, min, max, step, val) =>
+    `<div class="pix-tool__row"><span>${label}</span>`
+    + `<input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">`
+    + `<code id="${id}-v">${val}</code></div>`;
+
+  panel.innerHTML =
+    '<div class="pix-tool__head"><span>Beam</span>'
+    + '<label class="pix-tool__chk"><input type="checkbox" id="bm-on" checked> on</label></div>'
+    + row('Opacity', 'bm-opa', 0, 0.8, 0.01, mat.uniforms.uOpacity.value)
+    + row('Speed', 'bm-spd', 0, 3, 0.05, beamSpeed)
+    + row('Length', 'bm-len', 0.3, 2, 0.05, 1)
+    + row('Angle', 'bm-ang', -20, 90, 1, Math.round((beamTilt * 180) / Math.PI))
+    + '<div class="pix-tool__row"><span>Color</span>'
+    + `<input type="color" id="bm-col" value="#${mat.uniforms.uColor.value.getHexString()}"></div>`
+    + '<div class="pix-tool__row"><span>Pos</span><code id="bm-pos" class="bm-pos"></code></div>'
+    + '<div class="pix-tool__btns"><button id="bm-move" class="pix-tool__btn">move</button>'
+    + '<button id="bm-copy" class="pix-tool__btn">copy</button></div>';
+
+  const bind = (id, fn) => {
+    const el = panel.querySelector('#' + id);
+    const out = panel.querySelector('#' + id + '-v');
+    el.addEventListener('input', () => { fn(Number(el.value)); out.textContent = el.value; });
+  };
+
+  const chk = panel.querySelector('#bm-on');
+  chk.addEventListener('change', () => {
+    cone.visible = chk.checked;
+    panel.classList.toggle('is-off', !chk.checked);
+  });
+
+  bind('bm-opa', (v) => { mat.uniforms.uOpacity.value = v; });
+  bind('bm-spd', (v) => { beamSpeed = v; });
+  bind('bm-len', (v) => { cone.scale.z = v; });
+  bind('bm-ang', (v) => { beamTilt = (v * Math.PI) / 180; });
+
+  const col = panel.querySelector('#bm-col');
+  col.addEventListener('input', () => { mat.uniforms.uColor.value.set(col.value); });
+
+  const mSize = size.y * 0.1;
+  const marker = new THREE.Mesh(
+    new THREE.BoxGeometry(mSize, mSize, mSize),
+    new THREE.MeshBasicMaterial({ color: mat.uniforms.uColor.value, wireframe: true })
+  );
+  marker.position.copy(beam.position);
+  marker.visible = false;
+  scene.add(marker);
+
+  const gizmo = new TransformControls(camera, renderer.domElement);
+  gizmo.setSize(0.8);
+  gizmo.visible = false;
+  gizmo.enabled = false;
+  gizmo.addEventListener('dragging-changed', (e) => { controls.enabled = !e.value; });
+  gizmo.addEventListener('objectChange', () => {
+    beam.position.copy(marker.position);
+    cone.position.copy(marker.position);
+    updatePos();
+  });
+  scene.add(gizmo);
+
+  const ray = new THREE.Raycaster();
+  const ptr = new THREE.Vector2();
+  renderer.domElement.addEventListener('pointerdown', (ev) => {
+    if (!marker.visible || gizmo.dragging) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    ptr.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+    ptr.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+    ray.setFromCamera(ptr, camera);
+    if (ray.intersectObject(marker, false).length) gizmo.attach(marker);
+  });
+
+  const posEl = panel.querySelector('#bm-pos');
+  function updatePos() {
+    const p = marker.position;
+    posEl.textContent = `${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`;
+  }
+  updatePos();
+
+  const moveBtn = panel.querySelector('#bm-move');
+  moveBtn.addEventListener('click', () => {
+    const on = !marker.visible;
+    marker.visible = on;
+    gizmo.visible = on;
+    gizmo.enabled = on;
+    if (on) gizmo.attach(marker); else gizmo.detach();
+    moveBtn.textContent = on ? 'done' : 'move';
+  });
+
+  panel.querySelector('#bm-copy').addEventListener('click', (e) => {
+    const p = marker.position;
+    navigator.clipboard?.writeText(`beam.position.set(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)});`);
+    e.target.textContent = 'copied!';
+    setTimeout(() => { e.target.textContent = 'copy'; }, 1200);
+  });
 }
 
 window.addEventListener('resize', () => {
@@ -288,19 +430,25 @@ window.addEventListener('resize', () => {
 });
 
 const clock = new THREE.Clock();
+let prevT = 0;
 
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
+  const dt = Math.min(t - prevT, 0.1);
+  prevT = t;
 
   if (loaded) {
-    const angle = t * 0.8;
+    beamAngle += dt * beamSpeed;
+    const ct = Math.cos(beamTilt), st = Math.sin(beamTilt);
     beam.target.position.set(
-      beam.position.x + Math.sin(angle) * 40,
-      0,
-      beam.position.z + Math.cos(angle) * 40
+      beam.position.x + Math.sin(beamAngle) * 40 * ct,
+      beam.position.y - st * 40,
+      beam.position.z + Math.cos(beamAngle) * 40 * ct
     );
     beam.target.updateMatrixWorld();
+
+    if (beamCone) beamCone.lookAt(beam.target.position);
 
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);

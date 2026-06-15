@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patryk Wenda — Portfolio</title>
+  <meta name="description" content="Creative developer & designer. Interactive 3D experiences.">
+  <link rel="stylesheet" href="landing.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <!-- ── HERO ──────────────────────────────────────────── -->
+  <section class="hero">
+    <canvas id="canvas"></canvas>
+
+    <div id="loader" class="loader">
+      <div class="loader__spinner"></div>
+    </div>
+
+    <div class="hero__content">
+      <p class="hero__eyebrow">Creative Developer</p>
+      <h1 class="hero__title">Patryk<br>Wenda</h1>
+      <p class="hero__sub">3D · Web · Design</p>
+      <a href="#work" class="hero__cta">See my work</a>
+    </div>
+
+    <div class="hero__scroll">
+      <span>scroll</span>
+      <div class="hero__scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ── WORK ──────────────────────────────────────────── -->
+  <section class="work" id="work">
+    <div class="work__inner">
+      <h2 class="section-title">Selected Work</h2>
+      <div class="work__grid">
+        <article class="card">
+          <div class="card__thumb card__thumb--1"></div>
+          <div class="card__body">
+            <span class="card__tag">Three.js · Spline</span>
+            <h3 class="card__title">RGB Lighthouse</h3>
+            <p class="card__desc">Interactive 3D scene with volumetric beam, pixel art post-processing and dynamic RGB lighting.</p>
+            <a href="../index.html" class="card__link">Open scene →</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card__thumb card__thumb--2"></div>
+          <div class="card__body">
+            <span class="card__tag">Coming soon</span>
+            <h3 class="card__title">Next Project</h3>
+            <p class="card__desc">More work in progress.</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card__thumb card__thumb--3"></div>
+          <div class="card__body">
+            <span class="card__tag">Coming soon</span>
+            <h3 class="card__title">Next Project</h3>
+            <p class="card__desc">More work in progress.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACT ───────────────────────────────────────── -->
+  <section class="contact" id="contact">
+    <div class="contact__inner">
+      <h2 class="section-title">Get in touch</h2>
+      <p class="contact__sub">Let's build something together.</p>
+      <a href="mailto:p2trix@gmail.com" class="contact__email">p2trix@gmail.com</a>
+    </div>
+  </section>
+
+  <script type="module" src="hero.js"></script>
+</body>
+</html>

@@ -124,8 +124,9 @@ const waterMat = new THREE.ShaderMaterial({
     }
 
     void main(){
-      vec2 uv  = vWPos.xz * 0.08 + vec2(uTime * -0.06, uTime * -0.04);
-      vec2 uv2 = vWPos.xz * 0.13 + vec2(uTime *  0.03, uTime * -0.07);
+      vec2 radial = normalize(vWPos.xz + vec2(0.001)) * uTime * 0.055;
+      vec2 uv  = vWPos.xz * 0.08 + radial;
+      vec2 uv2 = vWPos.xz * 0.13 + radial * 0.7 + vec2(uTime * 0.02, -uTime * 0.015);
 
       float eps = 0.04;
       float hL=fbm(uv-vec2(eps,0.)),hR=fbm(uv+vec2(eps,0.));
@@ -144,10 +145,12 @@ const waterMat = new THREE.ShaderMaterial({
       col += diffuseBlob(uLightGPos, vec3(0.0, 1.0,  0.15), uLightGInt * 0.0022);
       col += diffuseBlob(uLightBPos, vec3(0.1, 0.3,  1.0),  uLightBInt * 0.0022);
 
-      /* wave glints — small sharp specular only */
+      /* wave glints — only near lighthouse, fade to 0 at ~20 units */
+      float distFromCenter = length(vWPos.xz);
+      float waveZone = 1.0 - smoothstep(6.0, 20.0, distFromCenter);
       vec3 Lspec = normalize(vec3(0.2, 1.0, 0.4));
       vec3 Hspec = normalize(Lspec + V);
-      float spec = pow(max(dot(N, Hspec), 0.0), 220.0) * 0.5;
+      float spec = pow(max(dot(N, Hspec), 0.0), 220.0) * 0.5 * waveZone;
       col += spec * vec3(0.8, 0.9, 1.0);
 
       gl_FragColor = vec4(col, 1.0);

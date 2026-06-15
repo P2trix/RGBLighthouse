@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patryk Wenda — Game Studio</title>
-  <meta name="description" content="Independent game studio. 3D · Design · Interactive Experiences.">
+  <title>Psychob Studio — Game Development</title>
+  <meta name="description" content="Independent game studio by Andrzej Budzanowski. 3D · Design · Interactive Experiences.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
@@ -22,9 +22,9 @@
 
   <!-- ── NAV ───────────────────────────────────────────── -->
   <nav class="nav">
-    <a href="#hero" class="nav__logo" aria-label="Patryk Wenda — home">
-      <img src="logo.svg" alt="Patryk Wenda logo" class="nav__logo-img">
-      <span class="nav__logo-name">Patryk Wenda</span>
+    <a href="#hero" class="nav__logo" aria-label="Psychob Studio — home">
+      <img src="logo.svg" alt="Psychob Studio logo" class="nav__logo-img">
+      <span class="nav__logo-name">Psychob Studio</span>
     </a>
     <div class="nav__links">
       <a href="#services" class="nav__link">Services</a>
@@ -87,7 +87,7 @@
       </div>
 
       <div class="hero__text">
-        <p class="tag">— Independent Game Studio</p>
+        <p class="tag">— Andrzej Budzanowski / psychob</p>
         <h1 class="hero__title">
           <span class="glitch" data-text="We build">We build</span><br>
           <em class="glitch-em" data-text="worlds.">worlds.</em>
@@ -316,7 +316,7 @@
     <div class="section__body footer__body">
       <div class="footer__brand">
         <img src="logo.svg" alt="" class="footer__logo" aria-hidden="true">
-        <span class="footer__copy">© 2026 Patryk Wenda</span>
+        <span class="footer__copy">© 2026 Andrzej Budzanowski / Psychob Studio</span>
       </div>
       <span class="footer__built">Built with Three.js · No frameworks hurt in the making.</span>
     </div>
@@ -368,7 +368,7 @@
       const el = glitchEls[Math.floor(Math.random() * glitchEls.length)];
       el.classList.add('is-glitching');
       setTimeout(() => el.classList.remove('is-glitching'), 400);
-      setTimeout(randomGlitch, 1800 + Math.random() * 3000);
+      setTimeout(randomGlitch, 600 + Math.random() * 1200);
     }
     setTimeout(randomGlitch, 2000);
   </script>

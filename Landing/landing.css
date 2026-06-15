@@ -7,8 +7,8 @@
   --border-hi: rgba(255,255,255,0.16);
   --fg:        #F0F2F7;
   --muted:     #6B7280;
-  --accent:    #4F6EF7;
-  --accent2:   #7B5CFA;
+  --accent:    #CBFF47;
+  --accent2:   #a8e800;
   --label-w:   52px;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
@@ -265,7 +265,7 @@ body::before {
   background: var(--accent);
   animation: blink-dot 1.4s ease-in-out infinite;
 }
-.hud-dot--green { background: #22c55e; }
+.hud-dot--green { background: var(--accent); }
 
 @keyframes blink-dot {
   0%, 100% { opacity: 1; }
@@ -420,7 +420,7 @@ body::before {
 .glitch.is-glitching::before,
 .glitch-em.is-glitching::before {
   opacity: 1;
-  color: #ff3366;
+  color: #ff2d6b;
   clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
   transform: translateX(-3px);
   animation: glitch-a 0.18s steps(2) forwards;
@@ -428,7 +428,7 @@ body::before {
 .glitch.is-glitching::after,
 .glitch-em.is-glitching::after {
   opacity: 1;
-  color: #33ccff;
+  color: #CBFF47;
   clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
   transform: translateX(3px);
   animation: glitch-b 0.18s steps(2) forwards;

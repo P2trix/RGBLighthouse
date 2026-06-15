@@ -6,6 +6,7 @@ import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelated
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+const BG = 0x07090F;
 const canvas = document.getElementById('canvas');
 const loaderEl = document.getElementById('loader');
 
@@ -17,8 +18,8 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07090F);
-scene.fog = new THREE.Fog(0x07090F, 18, 42);
+scene.background = new THREE.Color(BG);
+scene.fog = new THREE.FogExp2(BG, 0.022);
 
 const camera = new THREE.PerspectiveCamera(45, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000);
 camera.position.set(18, 15, 8);
@@ -63,6 +64,24 @@ const base = { red: 80, green: 40, blue: 150 };
 const beam = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 14, 0.4, 0);
 beam.castShadow = false;
 scene.add(beam, beam.target);
+
+/* ── WATER PLANE ──────────────────────────────────────── */
+const WATER_SEGS = 80;
+const waterGeo = new THREE.PlaneGeometry(120, 120, WATER_SEGS, WATER_SEGS);
+waterGeo.rotateX(-Math.PI / 2);
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x07090F,
+  metalness: 0.4,
+  roughness: 0.6,
+  transparent: true,
+  opacity: 0.9,
+});
+const water = new THREE.Mesh(waterGeo, waterMat);
+water.position.y = -0.3;
+scene.add(water);
+const waterPos = waterGeo.attributes.position;
+const waterBaseY = new Float32Array(waterPos.count);
+for (let i = 0; i < waterPos.count; i++) waterBaseY[i] = waterPos.getY(i);
 
 let beamCone = null;
 let beamAngle = 0;
@@ -138,6 +157,19 @@ function animate() {
   const t = clock.getElapsedTime();
   const dt = Math.min(t - prevT, 0.1);
   prevT = t;
+
+  /* animate water vertices */
+  for (let i = 0; i < waterPos.count; i++) {
+    const x = waterPos.getX(i);
+    const z = waterPos.getZ(i);
+    const wave =
+      Math.sin(x * 0.22 + t * 1.1) * 0.18 +
+      Math.sin(z * 0.18 + t * 0.85) * 0.14 +
+      Math.sin((x + z) * 0.12 + t * 0.6) * 0.1;
+    waterPos.setY(i, waterBaseY[i] + wave);
+  }
+  waterPos.needsUpdate = true;
+  waterGeo.computeVertexNormals();
 
   if (loaded) {
     beamAngle += dt * 0.8;

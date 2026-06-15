@@ -512,7 +512,10 @@ function setupWaterTool() {
     '<div class="pix-tool__head"><span>Water</span></div>'
     + '<div class="pix-tool__row"><span>Waves</span>'
     + '<input type="range" id="wt-str" min="0" max="6" step="0.1" value="2.5">'
-    + '<code id="wt-str-v">2.5</code></div>';
+    + '<code id="wt-str-v">2.5</code></div>'
+    + '<div class="pix-tool__row"><span>Y</span>'
+    + '<input type="range" id="wt-y" min="-5" max="10" step="0.1" value="-0.3">'
+    + '<code id="wt-y-v">-0.3</code></div>';
 
   const slider = panel.querySelector('#wt-str');
   const val    = panel.querySelector('#wt-str-v');
@@ -520,6 +523,14 @@ function setupWaterTool() {
     const v = Number(slider.value);
     waterMat.uniforms.uNormalStrength.value = v;
     val.textContent = v.toFixed(1);
+  });
+
+  const sliderY = panel.querySelector('#wt-y');
+  const valY    = panel.querySelector('#wt-y-v');
+  sliderY.addEventListener('input', () => {
+    const v = Number(sliderY.value);
+    water.position.y = v;
+    valY.textContent = v.toFixed(1);
   });
 }
 

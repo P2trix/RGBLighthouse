@@ -7,6 +7,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 const canvas = document.getElementById('canvas');
 const loaderEl = document.getElementById('loader');
@@ -55,6 +56,23 @@ const bloom = new UnrealBloomPass(
   0.55
 );
 composer.addPass(bloom);
+
+const caPass = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uStrength: { value: 0.0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uStrength;
+    varying vec2 vUv;
+    void main(){
+      vec2 offset = uStrength * (vUv - 0.5);
+      float r = texture2D(tDiffuse, vUv - offset).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv + offset).b;
+      gl_FragColor = vec4(r, g, b, 1.0);
+    }`,
+});
+composer.addPass(caPass);
 composer.addPass(new OutputPass());
 
 setupPixelTool(renderPass, pixelPass);
@@ -155,9 +173,7 @@ const waterMat = new THREE.ShaderMaterial({
                     + smoothstep(1.0 - lineWidth, 1.0, contourVal);
       contour *= waveZone;
 
-      /* contour line color = mix of nearby RGB lights */
-      vec3 lineCol = col * 3.0 + vec3(0.05, 0.08, 0.15);
-      col = mix(col, lineCol, contour * 0.85);
+      col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
 
       gl_FragColor = vec4(col, 1.0);
       #include <fog_fragment>
@@ -393,7 +409,10 @@ function setupPixelTool(renderPass, pixelPass) {
     + '<label class="pix-tool__chk"><input type="checkbox" id="px-on" checked> on</label></div>'
     + '<div class="pix-tool__row"><span>Size</span>'
     + `<input type="range" id="px-size" min="1" max="16" step="0.25" value="${pixelPass.pixelSize}">`
-    + `<code id="px-sizeval">${pixelPass.pixelSize}</code></div>`;
+    + `<code id="px-sizeval">${pixelPass.pixelSize}</code></div>`
+    + '<div class="pix-tool__row"><span>CA</span>'
+    + '<input type="range" id="px-ca" min="0" max="0.02" step="0.0005" value="0">'
+    + '<code id="px-caval">0</code></div>';
 
   const chk = panel.querySelector('#px-on');
   const size = panel.querySelector('#px-size');
@@ -411,6 +430,14 @@ function setupPixelTool(renderPass, pixelPass) {
     const v = Number(size.value);
     pixelPass.setPixelSize(v);
     sizeVal.textContent = v;
+  });
+
+  const caSlider = panel.querySelector('#px-ca');
+  const caVal    = panel.querySelector('#px-caval');
+  caSlider.addEventListener('input', () => {
+    const v = Number(caSlider.value);
+    caPass.uniforms.uStrength.value = v;
+    caVal.textContent = v.toFixed(4);
   });
 
   setEnabled(true);

@@ -179,7 +179,8 @@ html, body {
 
 .pix-tool.is-off { opacity: 0.6; }
 
-.beam-tool { top: 150px; }
+.beam-tool  { top: 150px; }
+.water-tool { top: 290px; }
 .beam-tool .pix-tool__row { margin-top: 6px; }
 .bm-pos { flex: 1; color: #aeb6c2; font-size: 11px; }
 .pix-tool__btns { display: flex; gap: 6px; margin-top: 8px; }

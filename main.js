@@ -84,10 +84,12 @@ const waterMat = new THREE.ShaderMaterial({
   uniforms: {
     ...THREE.UniformsLib.fog,
     uTime: { value: 0 },
+    uAmp:  { value: 7.0 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
     uniform float uTime;
+    uniform float uAmp;
     varying float vH;
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
     float vn(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);
@@ -98,7 +100,7 @@ const waterMat = new THREE.ShaderMaterial({
       vec2 uv=pos.xz*0.055+vec2(uTime*-0.07,uTime*-0.045);
       float h=fbm(uv);
       vH=h;
-      pos.y+=(h-.5)*7.0;
+      pos.y+=(h-.5)*uAmp;
       vec4 mvPos=modelViewMatrix*vec4(pos,1.0);
       gl_Position=projectionMatrix*mvPos;
       #include <fog_vertex>
@@ -466,6 +468,23 @@ function setupBeamTool(cone, mat) {
   });
 }
 
+function setupWaterTool() {
+  const panel = document.getElementById('waterTool');
+  panel.innerHTML =
+    '<div class="pix-tool__head"><span>Water</span></div>'
+    + '<div class="pix-tool__row"><span>Amp</span>'
+    + '<input type="range" id="wt-amp" min="0" max="20" step="0.5" value="7">'
+    + '<code id="wt-amp-v">7.0</code></div>';
+
+  const slider = panel.querySelector('#wt-amp');
+  const val    = panel.querySelector('#wt-amp-v');
+  slider.addEventListener('input', () => {
+    const v = Number(slider.value);
+    waterMat.uniforms.uAmp.value = v;
+    val.textContent = v.toFixed(1);
+  });
+}
+
 function setupCamTool() {
   const panel = document.getElementById('camTool');
   const RAD = THREE.MathUtils.radToDeg;
@@ -531,6 +550,7 @@ function setupCamTool() {
   tick();
 }
 
+setupWaterTool();
 setupCamTool();
 
 window.addEventListener('resize', () => {

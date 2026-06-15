@@ -106,8 +106,8 @@ const waterMat = new THREE.ShaderMaterial({
       pos.y+=(h-.5)*7.0;
       vec4 wPos=modelMatrix*vec4(pos,1.0);
       vWPos=wPos.xyz;
-      vec4 mvPos=viewMatrix*wPos;
-      gl_Position=projectionMatrix*mvPos;
+      vec4 mvPosition=viewMatrix*wPos;
+      gl_Position=projectionMatrix*mvPosition;
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
@@ -128,10 +128,10 @@ const waterMat = new THREE.ShaderMaterial({
       float diff=max(dot(N,L),0.0)*0.35;
       float spec=pow(max(dot(N,H),0.0),48.0)*0.25;
 
-      vec3 trough=vec3(0.01,0.02,0.05);
-      vec3 crest =vec3(0.06,0.09,0.18);
+      vec3 trough=vec3(0.02,0.05,0.12);
+      vec3 crest =vec3(0.08,0.18,0.38);
       vec3 col=mix(trough,crest,smoothstep(.3,.75,vH));
-      col+=diff*vec3(0.05,0.09,0.14)+spec*vec3(0.4,0.55,0.7);
+      col+=diff*vec3(0.04,0.10,0.20)+spec*vec3(0.6,0.75,0.9);
       gl_FragColor=vec4(col,1.0);
       #include <fog_fragment>
     }`,

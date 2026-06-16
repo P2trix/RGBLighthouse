@@ -293,10 +293,6 @@ body {
 /* ── HERO ─────────────────────────────────────────────── */
 .hero-section { min-height: 100svh; }
 
-.hero-section .section__label {
-  flex: 0 0 80px;
-  min-width: 80px;
-}
 
 .hero-section::after {
   display: none;

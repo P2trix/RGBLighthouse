@@ -223,6 +223,9 @@ body {
   min-width: 52px;
   background-image: none;
 }
+#expertise .section__body {
+  flex: 1;
+}
 #expertise::after {
   display: none;
 }

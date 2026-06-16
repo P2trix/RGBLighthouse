@@ -217,8 +217,7 @@ body {
 }
 
 .section__body {
-  flex: 0 1 1600px;
-  margin: 0 auto;
+  flex: 1;
   padding: 88px 72px 100px;
   min-width: 0;
 }

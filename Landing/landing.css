@@ -248,7 +248,21 @@ body {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
+  transition: color 0.4s ease;
 }
+
+/* ── SECTION LABEL ACTIVE ────────────────────────────────── */
+.section.is-active .section__label span,
+.footer.is-active .section__label span {
+  font-weight: 600;
+}
+#expertise.is-active  .section__label span { color: #ff4040; }
+#work.is-active       .section__label span { color: #40ff80; }
+#stack.is-active      .section__label span { color: #4080ff; }
+#experience.is-active .section__label span { color: #ff4040; }
+#blog.is-active       .section__label span { color: #40ff80; }
+#contact.is-active    .section__label span { color: #4080ff; }
+.footer.is-active     .section__label span { color: #ff4040; }
 
 .section__divider {
   width: 1px;

@@ -693,6 +693,12 @@
         }).join('');
       } catch (_) { /* keep hardcoded fallback */ }
     })();
+
+    /* section label active highlight */
+    const sio = new IntersectionObserver((entries) => {
+      entries.forEach(e => e.target.classList.toggle('is-active', e.isIntersecting));
+    }, { rootMargin: '-30% 0px -30% 0px', threshold: 0 });
+    document.querySelectorAll('.section[id]:not(#hero), footer.footer').forEach(s => sio.observe(s));
   </script>
 </body>
 </html>

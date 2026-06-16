@@ -39,14 +39,27 @@ body::before {
   z-index: 0;
 }
 
-body::after {
-  content: '';
+/* ── 12-COL GRID OVERLAY ─────────────────────────────────── */
+.grid-overlay {
   position: fixed;
-  inset: 0;
-  background-image: linear-gradient(90deg, rgba(255,255,255,0.038) 1px, transparent 1px);
-  background-size: 180px 100%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1600px, 100vw);
+  height: 100vh;
   pointer-events: none;
-  z-index: 0;
+  z-index: 9999;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.grid-overlay b {
+  display: block;
+  border-right: 1px solid rgba(255,255,255,0.045);
+}
+
+.grid-overlay b:first-child {
+  border-left: 1px solid rgba(255,255,255,0.045);
 }
 
 /* ── NAV ──────────────────────────────────────────────── */
@@ -154,6 +167,10 @@ body::after {
   min-height: 100svh;
   border-top: 1px solid var(--border);
   z-index: 1;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .footer {
@@ -162,6 +179,10 @@ body::after {
   align-items: stretch;
   border-top: 1px solid var(--border);
   z-index: 1;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .section::after,

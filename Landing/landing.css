@@ -219,6 +219,8 @@ body {
 
 /* ── EXPERTISE — nowy układ hatch ─────────────────────── */
 #expertise .section__label {
+  flex: 0 0 52px;
+  min-width: 52px;
   background-image: none;
 }
 #expertise::after {

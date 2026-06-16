@@ -688,6 +688,12 @@ body {
   width: 100%;
   height: 100%;
 }
+.service-card__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
 
 /* ── WORK ─────────────────────────────────────────────── */
 .work__head {

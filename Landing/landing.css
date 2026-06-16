@@ -214,16 +214,13 @@ body {
   flex: 0 0 48px;
   width: 48px;
   align-self: stretch;
+  border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   background-image: repeating-linear-gradient(
     -45deg,
-    transparent 0, transparent 8px,
-    rgba(255,255,255,0.028) 8px, rgba(255,255,255,0.028) 9px
+    transparent 0, transparent 4px,
+    rgba(255,255,255,0.028) 4px, rgba(255,255,255,0.028) 5px
   );
-}
-.section__hatch--right {
-  border-right: none;
-  border-left: 1px solid var(--border);
 }
 
 /* ── EXPERTISE — nowy układ ────────────────────────────── */

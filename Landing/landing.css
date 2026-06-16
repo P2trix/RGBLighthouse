@@ -175,11 +175,6 @@ body {
   background: var(--bg);
 }
 
-/* hero stays full viewport width */
-#hero {
-  max-width: 100%;
-}
-
 .section::after,
 .footer::after {
   content: '';
@@ -229,6 +224,7 @@ body {
   flex: 1;
   padding: 88px 72px 100px;
   min-width: 0;
+  max-width: calc(1600px - var(--label-w) * 2);
 }
 
 /* ── HERO ─────────────────────────────────────────────── */

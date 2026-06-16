@@ -33,9 +33,9 @@ body {
 .grid-overlay {
   position: fixed;
   top: 0;
-  left: 50%;
+  left: calc(50% + 24px);
   transform: translateX(-50%);
-  width: min(1600px, 100vw);
+  width: min(1600px, calc(100vw - 144px));
   height: 100vh;
   pointer-events: none;
   z-index: 9999;
@@ -45,11 +45,11 @@ body {
 
 .grid-overlay b {
   display: block;
-  border-right: 1px solid rgba(255,255,255,0.045);
+  border-right: 1px solid rgba(255,255,255,0.095);
 }
 
 .grid-overlay b:first-child {
-  border-left: 1px solid rgba(255,255,255,0.045);
+  border-left: 1px solid rgba(255,255,255,0.095);
 }
 
 /* ── NAV ──────────────────────────────────────────────── */

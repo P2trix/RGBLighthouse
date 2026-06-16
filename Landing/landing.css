@@ -9,7 +9,7 @@
   --muted:     #6B7280;
   --accent:    #CBFF47;
   --accent2:   #a8e800;
-  --label-w:   52px;
+  --label-w:   48px;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
 }
@@ -227,8 +227,8 @@ body {
 
 /* ── EXPERTISE — nowy układ ────────────────────────────── */
 #expertise .section__label {
-  flex: 0 0 52px;
-  min-width: 52px;
+  flex: 0 0 48px;
+  min-width: 48px;
   background-image: none;
 }
 #expertise::after {
@@ -971,6 +971,13 @@ body {
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────── */
+@media (min-width: 1600px) {
+  .section__label {
+    flex: 0 0 48px;
+    min-width: 48px;
+  }
+}
+
 @media (max-width: 640px) {
   .nav__links { display: none; }
   .nav { padding: 0 20px; }

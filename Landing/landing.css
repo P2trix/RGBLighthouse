@@ -200,6 +200,31 @@ body {
   );
 }
 
+/* ── HATCH COLUMNS (inside sections) ──────────────────── */
+.section__hatch {
+  flex-shrink: 0;
+  width: 54px;
+  align-self: stretch;
+  border-right: 1px solid var(--border);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0, transparent 8px,
+    rgba(255,255,255,0.028) 8px, rgba(255,255,255,0.028) 9px
+  );
+}
+.section__hatch--right {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+/* ── EXPERTISE — nowy układ hatch ─────────────────────── */
+#expertise .section__label {
+  background-image: none;
+}
+#expertise::after {
+  display: none;
+}
+
 .section__label span {
   font-family: var(--font-mono);
   font-size: 10px;

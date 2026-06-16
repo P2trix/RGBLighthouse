@@ -98,10 +98,7 @@
 
       <div class="hero__text">
         <p class="tag">— Andrzej Budzanowski / psychob</p>
-        <h1 class="hero__title">
-          <span class="dot-title">We build</span><br>
-          <em class="dot-title">worlds.</em>
-        </h1>
+        <canvas id="hero-dots" aria-label="We build worlds." style="display:block;width:100%;margin-bottom:20px;"></canvas>
         <p class="hero__desc">Backend systems, blockchain platforms<br>and interactive experiences — from scratch.</p>
         <div class="hero__links">
           <a href="#work" class="btn btn--outline">View projects</a>
@@ -657,7 +654,69 @@
     }, { threshold: 0.5 });
     counters.forEach(el => cio.observe(el));
 
-    /* dot matrix — disabled pending proper implementation */
+    /* hero dot-matrix title */
+    (function () {
+      const c = document.getElementById('hero-dots');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      const DPR = Math.min(window.devicePixelRatio || 1, 2);
+      const W = 560, H = 290;
+      c.width = W * DPR; c.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      const FS = 118, SP = 7, R = 2.8;
+
+      function sample(text, fontStr, yOff) {
+        const o = document.createElement('canvas'), oc = o.getContext('2d');
+        o.width = 1000; o.height = Math.ceil(FS * 1.5);
+        oc.font = fontStr; oc.fillStyle = '#fff';
+        oc.fillText(text, 0, FS);
+        const { data, width, height } = oc.getImageData(0, 0, o.width, o.height);
+        const pts = [];
+        for (let y = 0; y < height; y += SP)
+          for (let x = 0; x < width; x += SP)
+            if (data[(y * width + x) * 4 + 3] > 60)
+              pts.push({ tx: x, ty: y + yOff,
+                x: (Math.random() - 0.5) * W * 2.5 + W / 2,
+                y: (Math.random() - 0.5) * H * 2.5 + H / 2,
+                vx: 0, vy: 0 });
+        return pts;
+      }
+
+      let dots = [], rafId;
+
+      function init() {
+        const bold  = `700 ${FS}px "IBM Plex Sans",sans-serif`;
+        const light = `300 italic ${FS}px "IBM Plex Sans",sans-serif`;
+        const d1 = sample('We build', bold, 0);
+        const d2 = sample('worlds.',  light, Math.round(FS * 1.12));
+        dots = [
+          ...d1.map(d => ({ ...d, a: 1.0 })),
+          ...d2.map(d => ({ ...d, a: 0.42 }))
+        ];
+        if (rafId) cancelAnimationFrame(rafId);
+        tick();
+      }
+
+      function tick() {
+        ctx.clearRect(0, 0, W, H);
+        let live = false;
+        for (const d of dots) {
+          d.vx = (d.vx + (d.tx - d.x) * 0.06) * 0.82;
+          d.vy = (d.vy + (d.ty - d.y) * 0.06) * 0.82;
+          d.x += d.vx; d.y += d.vy;
+          if (Math.abs(d.vx) > 0.05 || Math.abs(d.vy) > 0.05) live = true;
+          ctx.globalAlpha = d.a;
+          ctx.fillStyle = '#F0F2F7';
+          ctx.beginPath(); ctx.arc(d.x, d.y, R, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        if (live) rafId = requestAnimationFrame(tick);
+      }
+
+      c.addEventListener('click', init);
+      document.fonts.ready.then(() => setTimeout(init, 300));
+    })();
 
     /* RSS blog feed — try live, fallback to hardcoded above */
     (async () => {

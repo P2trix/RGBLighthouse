@@ -30,6 +30,7 @@
       <a href="#expertise" class="nav__link">Expertise</a>
       <a href="#work" class="nav__link">Work</a>
       <a href="#stack" class="nav__link">Stack</a>
+      <a href="#experience" class="nav__link">Experience</a>
       <a href="#blog" class="nav__link">Blog</a>
       <a href="#contact" class="nav__link">Contact</a>
     </div>
@@ -94,8 +95,8 @@
       <div class="hero__text">
         <p class="tag">— Andrzej Budzanowski / psychob</p>
         <h1 class="hero__title">
-          <span class="glitch" data-text="We build">We build</span><br>
-          <em class="glitch-em" data-text="worlds.">worlds.</em>
+          <span class="dot-title">We build</span><br>
+          <em class="dot-title">worlds.</em>
         </h1>
         <p class="hero__desc">Backend systems, blockchain platforms<br>and interactive experiences — from scratch.</p>
         <div class="hero__links">
@@ -130,7 +131,7 @@
     <div class="section__divider"></div>
     <div class="section__body">
       <div class="services__head">
-        <h2 class="section-title reveal-title">What I do.</h2>
+        <h2 class="section-title reveal-title dot-title">What I do.</h2>
         <p class="section-sub">Eight years shipping production systems — backend, blockchain and the web.</p>
       </div>
       <div class="services__grid">
@@ -198,7 +199,7 @@
     <div class="section__divider"></div>
     <div class="section__body">
       <div class="work__head">
-        <h2 class="section-title reveal-title">Selected projects.</h2>
+        <h2 class="section-title reveal-title dot-title">Selected projects.</h2>
         <div class="work__tabs">
           <button class="tab is-active" data-filter="all">All</button>
           <button class="tab" data-filter="blockchain">Blockchain</button>
@@ -321,7 +322,7 @@
     </div>
     <div class="section__divider"></div>
     <div class="section__body">
-      <h2 class="section-title reveal-title">Tools of the trade.</h2>
+      <h2 class="section-title reveal-title dot-title">Tools of the trade.</h2>
       <div class="stack__grid">
         <div class="stack__group">
           <p class="stack__group-label">Backend</p>
@@ -380,6 +381,82 @@
     </div>
   </section>
 
+  <!-- ── EXPERIENCE ──────────────────────────────────────── -->
+  <section class="section" id="experience">
+    <div class="section__label">
+      <span>Experience</span>
+    </div>
+    <div class="section__divider"></div>
+    <div class="section__body">
+      <div class="exp__head">
+        <div>
+          <span class="section__eyebrow">// EXPERIENCE</span>
+          <h2 class="section-title reveal-title dot-title">Where I've shipped.</h2>
+        </div>
+        <p class="exp__meta">8+ years · 2 companies · 5 blockchain projects</p>
+      </div>
+      <div class="exp__timeline">
+
+        <!-- Neti — current -->
+        <div class="exp__entry exp__entry--current">
+          <div class="exp__date">
+            <span>2023</span>
+            <span>Present</span>
+          </div>
+          <div class="exp__dot-col">
+            <div class="exp__dot"></div>
+          </div>
+          <div class="exp__card">
+            <div class="exp__card-header">
+              <span class="exp__company">Neti</span>
+              <span class="exp__badge exp__badge--current">Current</span>
+            </div>
+            <div class="exp__role">Backend Developer</div>
+            <p class="exp__company-desc">Details coming soon.</p>
+            <div class="exp__tags">
+              <span>Node.js</span>
+              <span>TypeScript</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4soft -->
+        <div class="exp__entry">
+          <div class="exp__date">
+            <span>2017</span>
+            <span>2023</span>
+          </div>
+          <div class="exp__dot-col">
+            <div class="exp__dot"></div>
+          </div>
+          <div class="exp__card">
+            <div class="exp__card-header">
+              <span class="exp__company">4soft</span>
+            </div>
+            <div class="exp__role">Senior Backend Developer &amp; Blockchain Engineer · <span class="exp__location">Kraków, PL</span></div>
+            <p class="exp__company-desc">Software house specializing in fintech and blockchain. Led backend development across multiple DeFi, Web3 and ICO projects.</p>
+            <ul class="exp__bullets">
+              <li>Architected IvyKoin ICO platform — token sale infrastructure, KYC/KYT compliance pipeline and wallet management</li>
+              <li>Built Paribus DeFi lending protocol backend — NFT metadata retrieval, staking contracts and liquidity protocols on Ethereum</li>
+              <li>Designed OkTY data monetization platform — decentralized consent contracts and payment flows on blockchain</li>
+              <li>Published ethereum-address-validator (PHP, OSS) — 20 GitHub stars, 24 forks, used in production blockchain tooling</li>
+            </ul>
+            <div class="exp__tags">
+              <span>Node.js</span>
+              <span>Solidity</span>
+              <span>TypeScript</span>
+              <span>PHP</span>
+              <span>Docker</span>
+              <span>PostgreSQL</span>
+              <span>Hardhat</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ── BLOG ──────────────────────────────────────────── -->
   <section class="section" id="blog">
     <div class="section__label">
@@ -388,7 +465,7 @@
     <div class="section__divider"></div>
     <div class="section__body">
       <div class="work__head">
-        <h2 class="section-title reveal-title">From the blog.</h2>
+        <h2 class="section-title reveal-title dot-title">From the blog.</h2>
         <a href="https://blog.psychob.pl" class="btn btn--ghost" target="_blank" rel="noopener">All posts ↗</a>
       </div>
       <div class="work__grid" id="blog-posts">
@@ -445,18 +522,41 @@
       <span>Contact</span>
     </div>
     <div class="section__divider"></div>
-    <div class="section__body contact__body">
-      <p class="contact__pre">Ready to build something?</p>
-      <h2 class="contact__title glitch" data-text="Let's talk.">Let's talk.</h2>
-      <a href="mailto:cv@andrzej.budzanowski.pl" class="contact__email">cv@andrzej.budzanowski.pl</a>
-      <div class="contact__socials">
-        <a href="https://github.com/psychob" class="social-link" target="_blank" rel="noopener">GitHub</a>
-        <span class="social-sep">/</span>
-        <a href="https://linkedin.com/in/andrzej-budzanowski-444239138/" class="social-link" target="_blank" rel="noopener">LinkedIn</a>
-        <span class="social-sep">/</span>
-        <a href="https://blog.psychob.pl" class="social-link" target="_blank" rel="noopener">Blog</a>
-        <span class="social-sep">/</span>
-        <a href="https://andrzej.budzanowski.pl" class="social-link" target="_blank" rel="noopener">CV</a>
+    <div class="section__body">
+      <div class="contact__grid">
+        <div class="contact__left">
+          <span class="section__eyebrow">// GET IN TOUCH</span>
+          <h2 class="section-title reveal-title dot-title">Let's talk.</h2>
+          <div class="contact__status">
+            <span class="contact__status-dot"></span>
+            <span class="contact__status-text">Available for new projects</span>
+          </div>
+          <p class="contact__blurb">Open to backend contracts, blockchain consulting and interesting Web3 / WebGL collaborations.</p>
+        </div>
+        <div class="contact__right">
+          <div class="contact__link-list">
+            <a href="mailto:cv@andrzej.budzanowski.pl" class="contact__link-item">
+              <span class="contact__link-label">Email</span>
+              <span class="contact__link-val">cv@andrzej.budzanowski.pl ↗</span>
+            </a>
+            <a href="https://linkedin.com/in/andrzej-budzanowski-444239138/" class="contact__link-item" target="_blank" rel="noopener">
+              <span class="contact__link-label">LinkedIn</span>
+              <span class="contact__link-val">/in/andrzej-budzanowski ↗</span>
+            </a>
+            <a href="https://github.com/psychob" class="contact__link-item" target="_blank" rel="noopener">
+              <span class="contact__link-label">GitHub</span>
+              <span class="contact__link-val">/psychob ↗</span>
+            </a>
+            <a href="https://blog.psychob.pl" class="contact__link-item" target="_blank" rel="noopener">
+              <span class="contact__link-label">Blog</span>
+              <span class="contact__link-val">blog.psychob.pl ↗</span>
+            </a>
+            <a href="https://andrzej.budzanowski.pl" class="contact__link-item" target="_blank" rel="noopener">
+              <span class="contact__link-label">CV</span>
+              <span class="contact__link-val">andrzej.budzanowski.pl ↗</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -514,15 +614,36 @@
     }, { threshold: 0.5 });
     counters.forEach(el => cio.observe(el));
 
-    /* random glitch trigger */
-    const glitchEls = document.querySelectorAll('.glitch, .glitch-em');
-    function randomGlitch() {
-      const el = glitchEls[Math.floor(Math.random() * glitchEls.length)];
-      el.classList.add('is-glitching');
-      setTimeout(() => el.classList.remove('is-glitching'), 400);
-      setTimeout(randomGlitch, 600 + Math.random() * 1200);
+    /* dot matrix scatter on big titles */
+    function initDotMatrix() {
+      document.querySelectorAll('.dot-title').forEach(el => {
+        const text = el.textContent;
+        el.textContent = '';
+        [...text].forEach(ch => {
+          if (ch === ' ') { el.appendChild(document.createTextNode(' ')); return; }
+          const span = document.createElement('span');
+          span.className = 'dm-char';
+          span.textContent = ch;
+          el.appendChild(span);
+        });
+        const chars = el.querySelectorAll('.dm-char');
+        el.addEventListener('mouseenter', () => {
+          chars.forEach((ch, i) => {
+            ch.style.setProperty('--rx', (Math.random() - 0.5) * 130 + 'px');
+            ch.style.setProperty('--ry', (Math.random() - 0.5) * 90 + 'px');
+            ch.style.transitionDelay = i * 0.02 + 's';
+            ch.classList.add('is-scattered');
+          });
+        });
+        el.addEventListener('mouseleave', () => {
+          chars.forEach((ch, i) => {
+            ch.style.transitionDelay = i * 0.012 + 's';
+            ch.classList.remove('is-scattered');
+          });
+        });
+      });
     }
-    setTimeout(randomGlitch, 2000);
+    initDotMatrix();
 
     /* RSS blog feed — try live, fallback to hardcoded above */
     (async () => {

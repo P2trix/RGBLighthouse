@@ -222,10 +222,6 @@ body {
   min-width: 0;
 }
 
-#hero .section__label,
-#hero::after {
-  display: none;
-}
 
 /* ── HERO ─────────────────────────────────────────────── */
 .hero-section { min-height: 100svh; }

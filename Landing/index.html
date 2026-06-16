@@ -647,8 +647,8 @@
         const chars = el.querySelectorAll('.dm-char');
         el.addEventListener('mouseenter', () => {
           chars.forEach((ch, i) => {
-            ch.style.setProperty('--rx', (Math.random() - 0.5) * 130 + 'px');
-            ch.style.setProperty('--ry', (Math.random() - 0.5) * 90 + 'px');
+            ch.style.setProperty('--rx', (Math.random() - 0.5) * 240 + 'px');
+            ch.style.setProperty('--ry', (Math.random() - 0.5) * 160 + 'px');
             ch.style.transitionDelay = i * 0.02 + 's';
             ch.classList.add('is-scattered');
           });

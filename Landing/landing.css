@@ -200,10 +200,18 @@ body {
   );
 }
 
-/* ── HATCH COLUMNS (inside sections) ──────────────────── */
+/* ── SECTION INNER WRAPPER ─────────────────────────────── */
+.section__inner {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── HATCH COLUMNS (inside section__inner) ─────────────── */
 .section__hatch {
-  flex-shrink: 0;
-  width: 54px;
+  flex: 1;
+  min-width: 54px;
   align-self: stretch;
   border-right: 1px solid var(--border);
   background-image: repeating-linear-gradient(
@@ -217,17 +225,39 @@ body {
   border-left: 1px solid var(--border);
 }
 
-/* ── EXPERTISE — nowy układ hatch ─────────────────────── */
+/* ── EXPERTISE — nowy układ ────────────────────────────── */
 #expertise .section__label {
   flex: 0 0 52px;
   min-width: 52px;
   background-image: none;
 }
-#expertise .section__body {
-  flex: 1;
-}
 #expertise::after {
   display: none;
+}
+#expertise .section__body {
+  flex: 0 1 1600px;
+  min-width: 0;
+  padding: 100px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+#expertise .section-title {
+  font-size: clamp(48px, 6vw, 90px);
+  line-height: 64px;
+  margin-bottom: 0;
+}
+#expertise .section-sub {
+  margin-bottom: 0;
+  padding-top: 32px;
+  font-size: 14px;
+}
+#expertise .services__grid {
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 0;
+}
+#expertise .service-card {
+  padding: 36px 32px 40px;
 }
 
 .section__label span {

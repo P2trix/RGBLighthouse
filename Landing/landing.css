@@ -160,6 +160,7 @@ body {
   max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
+  background: var(--bg);
 }
 
 .footer {
@@ -171,6 +172,7 @@ body {
   max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
+  background: var(--bg);
 }
 
 /* hero stays full viewport width */
@@ -184,6 +186,11 @@ body {
   width: var(--label-w);
   flex-shrink: 0;
   border-left: 1px solid var(--border);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0, transparent 8px,
+    rgba(255,255,255,0.028) 8px, rgba(255,255,255,0.028) 9px
+  );
 }
 
 .section__label {
@@ -194,6 +201,11 @@ body {
   justify-content: center;
   padding-top: 28px;
   border-right: 1px solid var(--border);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0, transparent 8px,
+    rgba(255,255,255,0.028) 8px, rgba(255,255,255,0.028) 9px
+  );
 }
 
 .section__label span {

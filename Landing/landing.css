@@ -270,6 +270,7 @@ body {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
+  margin-top: 40px;
 }
 
 .section__divider {
@@ -293,6 +294,9 @@ body {
 /* ── HERO ─────────────────────────────────────────────── */
 .hero-section { min-height: 100svh; }
 
+.hero-section .section__label {
+  background-image: none;
+}
 
 .hero-section::after {
   display: none;

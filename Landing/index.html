@@ -98,7 +98,7 @@
 
       <div class="hero__text">
         <p class="tag">— Andrzej Budzanowski / psychob</p>
-        <canvas id="hero-dots" aria-label="We build worlds." style="display:block;width:100%;margin-bottom:20px;"></canvas>
+        <canvas id="hero-dots" aria-label="We light the dark." style="display:block;width:100%;margin-bottom:20px;"></canvas>
         <p class="hero__desc">Backend systems, blockchain platforms<br>and interactive experiences — from scratch.</p>
         <div class="hero__links">
           <a href="#work" class="btn btn--outline">View projects</a>
@@ -660,16 +660,16 @@
       if (!c) return;
       const ctx = c.getContext('2d');
       const DPR = Math.min(window.devicePixelRatio || 1, 2);
-      const W = 560, H = 220;
+      const W = 920, H = 360;
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      const FS = 80, SP = 10, R = 4.2;
+      const FS = 120, SP = 12, R = 5.5;
       const REP = 24, FORCE = 6;
 
       function sample(text, fontStr, yOff) {
         const o = document.createElement('canvas'), oc = o.getContext('2d');
-        o.width = 1000; o.height = Math.ceil(FS * 1.8);
+        o.width = 1200; o.height = Math.ceil(FS * 1.8);
         oc.font = fontStr; oc.fillStyle = '#fff';
         oc.fillText(text, 0, FS);
         const { data, width, height } = oc.getImageData(0, 0, o.width, o.height);
@@ -685,11 +685,11 @@
 
       function init(scatter) {
         const font = `${FS}px 'LU Dot Matrix'`;
-        const d1 = sample('We build', font, 0);
-        const d2 = sample('worlds.',  font, Math.round(FS * 1.3));
+        const d1 = sample('WE LIGHT', font, 0);
+        const d2 = sample('THE DARK.', font, Math.round(FS * 1.3));
         dots = [
           ...d1.map(d => ({ ...d, a: 1.0 })),
-          ...d2.map(d => ({ ...d, a: 0.42 }))
+          ...d2.map(d => ({ ...d, a: 1.0 }))
         ];
         if (scatter) {
           dots.forEach(d => {

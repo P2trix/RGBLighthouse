@@ -43,7 +43,8 @@ body::before {
 .grid-overlay {
   position: fixed;
   top: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: min(1600px, 100vw);
   height: 100vh;
   pointer-events: none;
@@ -167,6 +168,8 @@ body::before {
   border-top: 1px solid var(--border);
   z-index: 1;
   max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footer {
@@ -176,6 +179,8 @@ body::before {
   border-top: 1px solid var(--border);
   z-index: 1;
   max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* hero stays full viewport width */
@@ -482,25 +487,7 @@ body::before {
   100% { clip-path: polygon(0 70%, 100% 70%, 100% 85%, 0 85%); transform: translateX(2px); opacity: 0; }
 }
 
-/* ── DOT MATRIX ────────────────────────────────────────── */
-.dot-title { cursor: default; }
-
-.dot-title .dm-char {
-  display: inline-block;
-  transition: transform 0.52s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.38s ease;
-  will-change: transform;
-  /* Dot matrix: text rendered as a grid of dots */
-  background-image: radial-gradient(circle, currentcolor 44%, transparent 45%);
-  background-size: 7px 7px;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.dot-title .dm-char.is-scattered {
-  transform: translate(var(--rx, 0px), var(--ry, 0px));
-  opacity: 0;
-}
+/* dot matrix — disabled, will be replaced with proper implementation */
 
 /* ── SECTION EYEBROW ────────────────────────────────────── */
 .section__eyebrow {

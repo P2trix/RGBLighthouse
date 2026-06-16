@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -638,36 +638,7 @@
     }, { threshold: 0.5 });
     counters.forEach(el => cio.observe(el));
 
-    /* dot matrix scatter on big titles */
-    function initDotMatrix() {
-      document.querySelectorAll('.dot-title').forEach(el => {
-        const text = el.textContent;
-        el.textContent = '';
-        [...text].forEach(ch => {
-          if (ch === ' ') { el.appendChild(document.createTextNode(' ')); return; }
-          const span = document.createElement('span');
-          span.className = 'dm-char';
-          span.textContent = ch;
-          el.appendChild(span);
-        });
-        const chars = el.querySelectorAll('.dm-char');
-        el.addEventListener('mouseenter', () => {
-          chars.forEach((ch, i) => {
-            ch.style.setProperty('--rx', (Math.random() - 0.5) * 240 + 'px');
-            ch.style.setProperty('--ry', (Math.random() - 0.5) * 160 + 'px');
-            ch.style.transitionDelay = i * 0.02 + 's';
-            ch.classList.add('is-scattered');
-          });
-        });
-        el.addEventListener('mouseleave', () => {
-          chars.forEach((ch, i) => {
-            ch.style.transitionDelay = i * 0.012 + 's';
-            ch.classList.remove('is-scattered');
-          });
-        });
-      });
-    }
-    initDotMatrix();
+    /* dot matrix — disabled pending proper implementation */
 
     /* RSS blog feed — try live, fallback to hardcoded above */
     (async () => {

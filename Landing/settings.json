@@ -1,13 +1,15 @@
 {
   "water": {
     "posY": 3.5,
-    "normalStrength": 2.5,
-    "speed": 0.01,
-    "scale": 0.165,
-    "opacity": 0.68,
-    "baseColor": "#051601",
+    "normalStrength": 1.8,
+    "speed": 0,
+    "scale": 0.08,
+    "opacity": 0.06,
+    "baseColor": "#070a10",
     "wavesEnabled": 1,
-    "texMix": 0.66
+    "texMix": 0.34,
+    "contourBright": 0.9,
+    "psxSnap": 78
   },
   "beam": {
     "pos": {
@@ -18,29 +20,35 @@
     "tilt": 0.3,
     "speed": 0.8,
     "lengthScale": 1,
-    "colorHex": "fff8e8",
+    "colorHex": "ffffff",
     "enabled": true
   },
   "lights": {
     "base": {
-      "red": 80,
+      "red": 100,
       "green": 40,
-      "blue": 150
+      "blue": 80,
+      "top": 0
     },
     "red": [
-      -4.3,
+      5.531815177181178,
       6,
-      -3.5
+      -0.37285499260164645
     ],
     "green": [
-      2.8,
+      1.0894020917538159,
       6,
-      -4.6
+      5.273822435623179
     ],
     "blue": [
-      -1.2,
+      -1.7139693262944897,
       6.3,
-      3.8
+      -3.597542098227846
+    ],
+    "top": [
+      0,
+      18.431088784125667,
+      4
     ]
   },
   "bloom": {
@@ -48,6 +56,6 @@
     "threshold": 0.55,
     "radius": 0.5
   },
-  "pixelSize": 2,
-  "ca": 0.02
+  "pixelSize": 4.5,
+  "ca": 0.01
 }

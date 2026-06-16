@@ -206,6 +206,7 @@ body {
   align-self: stretch;
   display: flex;
   align-items: stretch;
+  justify-content: center;
 }
 
 /* ── HATCH COLUMNS (inside section__inner) ─────────────── */

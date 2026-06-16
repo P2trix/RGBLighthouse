@@ -171,18 +171,6 @@ body {
   background: var(--bg);
 }
 
-.section::after,
-.footer::after {
-  content: '';
-  flex: 1;
-  min-width: var(--label-w);
-  border-left: 1px solid var(--border);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent 0, transparent 8px,
-    rgba(255,255,255,0.028) 8px, rgba(255,255,255,0.028) 9px
-  );
-}
 
 .section__label {
   flex: 0 0 48px;
@@ -193,11 +181,6 @@ body {
   padding-top: 68px;
   padding-right: 12px;
   border-right: 1px solid var(--border);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent 0, transparent 8px,
-    rgba(255,255,255,0.028) 8px, rgba(255,255,255,0.028) 9px
-  );
 }
 
 /* ── SECTION INNER WRAPPER ─────────────────────────────── */
@@ -230,15 +213,10 @@ body {
 #expertise .section__label {
   flex: 0 0 48px;
   min-width: 48px;
-  background-image: none;
-}
-#expertise::after {
-  display: none;
 }
 #expertise .section__body {
   flex: 0 1 1600px;
   min-width: 0;
-  padding: 100px 0;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -280,7 +258,7 @@ body {
 
 .section__body {
   flex: 0 1 1600px;
-  padding: 88px 72px 100px;
+  padding: 100px 0;
   min-width: 0;
 }
 
@@ -1256,18 +1234,3 @@ body {
 
 .contact__link-item:hover .contact__link-val { color: var(--accent); }
 
-/* ── DEBUG — red hatching, green guide lines ─────────── */
-:root {
-  --border:    rgba(0,200,0,0.6);
-  --border-hi: rgba(0,255,0,0.8);
-}
-.section__label,
-.section::after,
-.footer::after,
-.section__hatch {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent 0, transparent 8px,
-    rgba(255,0,0,0.5) 8px, rgba(255,0,0,0.5) 9px
-  );
-}

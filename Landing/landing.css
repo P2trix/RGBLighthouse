@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'LU Dot Matrix';
+  src: url('fonts/lu-medium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {

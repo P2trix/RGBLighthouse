@@ -1218,3 +1218,19 @@ body {
 }
 
 .contact__link-item:hover .contact__link-val { color: var(--accent); }
+
+/* ── DEBUG — red hatching, green guide lines ─────────── */
+:root {
+  --border:    rgba(0,200,0,0.6);
+  --border-hi: rgba(0,255,0,0.8);
+}
+.section__label,
+.section::after,
+.footer::after,
+.section__hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0, transparent 8px,
+    rgba(255,0,0,0.5) 8px, rgba(255,0,0,0.5) 9px
+  );
+}

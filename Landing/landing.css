@@ -426,7 +426,8 @@ body {
   pointer-events: none;
   max-width: 520px;
 }
-.hero__text .btn { pointer-events: all; }
+.hero__text .btn,
+.hero__text canvas { pointer-events: all; }
 
 .tag {
   font-family: var(--font-mono);

@@ -664,8 +664,8 @@
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      const FS = 120, SP = 12, R = 5.5;
-      const REP = 24, FORCE = 6;
+      const FS = 120, SP = 14, R = 5;
+      const REP = 60, FORCE = 10;
 
       function sample(text, fontStr, yOff) {
         const o = document.createElement('canvas'), oc = o.getContext('2d');

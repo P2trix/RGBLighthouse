@@ -87,9 +87,10 @@ scene.add(fill);
 const lightRed   = new THREE.PointLight(0xff1500, 0, 0, 2);
 const lightGreen = new THREE.PointLight(0x00ff55, 0, 0, 2);
 const lightBlue  = new THREE.PointLight(0x1e5cff, 0, 0, 2);
-scene.add(lightRed, lightGreen, lightBlue);
+const lightTop   = new THREE.PointLight(0xffffff, 0, 0, 1.5);
+scene.add(lightRed, lightGreen, lightBlue, lightTop);
 
-const base = { red: 80, green: 40, blue: 150 };
+const base = { red: 80, green: 40, blue: 150, top: 0 };
 
 const beam = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 14, 0.4, 0);
 beam.castShadow = false;
@@ -97,7 +98,7 @@ scene.add(beam);
 scene.add(beam.target);
 
 /* ── WATER — flat plane + procedural normal map ───────── */
-const waterGeo = new THREE.PlaneGeometry(500, 500, 4, 4);
+const waterGeo = new THREE.PlaneGeometry(500, 500, 64, 64);
 waterGeo.rotateX(-Math.PI / 2);
 const waterMat = new THREE.ShaderMaterial({
   uniforms: {
@@ -111,21 +112,29 @@ const waterMat = new THREE.ShaderMaterial({
     uWavesEnabled:   { value: 1.0 },
     uTexture:        { value: null },
     uTexMix:         { value: 0.0 },
-    uLightRPos:   { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
-    uLightGPos:   { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
-    uLightBPos:   { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
-    uLightRInt:   { value: 0.0 },
-    uLightGInt:   { value: 0.0 },
+    uLightRPos:     { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
+    uLightGPos:     { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
+    uLightBPos:     { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
+    uLightRInt:     { value: 0.0 },
+    uLightGInt:     { value: 0.0 },
+    uContourBright: { value: 0.9 },
+    uPsxSnap:       { value: 0.0 },
     uLightBInt:   { value: 0.0 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
+    uniform float uPsxSnap;
     varying vec3 vWPos;
     void main(){
       vec4 wPos = modelMatrix * vec4(position, 1.0);
       vWPos = wPos.xyz;
       vec4 mvPosition = viewMatrix * wPos;
       gl_Position = projectionMatrix * mvPosition;
+      if (uPsxSnap > 0.0) {
+        gl_Position.xyz /= gl_Position.w;
+        gl_Position.xy = floor(gl_Position.xy * uPsxSnap + 0.5) / uPsxSnap;
+        gl_Position.xyz *= gl_Position.w;
+      }
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
@@ -141,6 +150,7 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uTexMix;
     uniform vec3 uLightRPos, uLightGPos, uLightBPos;
     uniform float uLightRInt, uLightGInt, uLightBInt;
+    uniform float uContourBright;
     varying vec3 vWPos;
 
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
@@ -186,7 +196,7 @@ const waterMat = new THREE.ShaderMaterial({
                     + smoothstep(1.0 - lineWidth, 1.0, contourVal);
       contour *= waveZone * wOn;
 
-      col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
+      col = mix(col, vec3(0.7, 0.85, 1.0), contour * uContourBright);
 
       vec3 texCol = texture2D(uTexture, uv * 0.5).rgb;
       col = mix(col, texCol, uTexMix);
@@ -268,9 +278,10 @@ function loadModel(url) {
     currentModel = model;
 
     const reach = Math.max(modelSize.x, modelSize.z) * 1.2;
-    lightRed.position.set(-4.3, 6.0, -3.5);  lightRed.distance   = reach; lightRed.intensity   = base.red;
-    lightGreen.position.set(2.8, 6.0, -4.6); lightGreen.distance = reach; lightGreen.intensity = base.green;
-    lightBlue.position.set(-1.2, 6.3, 3.8);  lightBlue.distance  = reach; lightBlue.intensity  = base.blue;
+    lightRed.position.set(-4.3, 6.0, -3.5);  lightRed.distance   = reach;     lightRed.intensity   = base.red;
+    lightGreen.position.set(2.8, 6.0, -4.6); lightGreen.distance = reach;     lightGreen.intensity = base.green;
+    lightBlue.position.set(-1.2, 6.3, 3.8);  lightBlue.distance  = reach;     lightBlue.intensity  = base.blue;
+    lightTop.position.set(0, modelSize.y * 1.8, 4); lightTop.distance = reach * 2.5; lightTop.intensity = base.top;
 
     beam.position.set(-0.40, 8.64, -0.95);
     beam.intensity = 0;
@@ -307,9 +318,10 @@ function loadModel(url) {
 
     if (!toolsInitialized) {
       setupLightTool(modelSize.y, [
-        { key: 'red',   label: 'R', light: lightRed },
-        { key: 'green', label: 'G', light: lightGreen },
-        { key: 'blue',  label: 'B', light: lightBlue },
+        { key: 'red',   label: 'R', light: lightRed,   uPos: waterMat.uniforms.uLightRPos },
+        { key: 'green', label: 'G', light: lightGreen, uPos: waterMat.uniforms.uLightGPos },
+        { key: 'blue',  label: 'B', light: lightBlue,  uPos: waterMat.uniforms.uLightBPos },
+        { key: 'top',   label: 'W', light: lightTop,   uPos: null },
       ]);
       setupBeamTool();
       camera.position.set(18, 15, 8);
@@ -356,7 +368,11 @@ function setupLightTool(h, entries) {
   gizmo.setSize(0.85);
   gizmo.addEventListener('dragging-changed', (ev) => { controls.enabled = !ev.value; });
   gizmo.addEventListener('objectChange', () => {
-    if (gizmo.object) { gizmo.object.userData.light.position.copy(gizmo.object.position); refresh(); }
+    if (!gizmo.object) return;
+    gizmo.object.userData.light.position.copy(gizmo.object.position);
+    const entry = entries.find((e) => e.box === gizmo.object);
+    if (entry?.uPos) entry.uPos.value.copy(gizmo.object.position);
+    refresh();
   });
   scene.add(gizmo);
 
@@ -378,11 +394,18 @@ function setupLightTool(h, entries) {
     refresh();
   }
 
+  const baseLightPos = entries.slice(0, 3).map((e) => e.light.position.clone());
+
   const panel = document.getElementById('lightTool');
   panel.innerHTML =
     '<div class="light-tool__head"><span>Lights — drag boxes / sliders</span>'
     + '<button id="lt-copy" class="light-tool__btn">copy</button>'
-    + '<button id="lt-hide" class="light-tool__btn">hide</button></div>';
+    + '<button id="lt-hide" class="light-tool__btn">hide</button></div>'
+    + '<div class="light-tool__row" style="grid-template-columns:26px 1fr auto;grid-template-areas:\'sel pos val\';padding:4px 0 6px;border-top:1px solid rgba(157,164,177,0.12)">'
+    + '<span style="grid-area:sel;font-size:10px;color:#9DA4B1">Rot</span>'
+    + '<input type="range" id="lt-rot" style="grid-area:pos;width:100%;accent-color:#6f8cff" min="0" max="360" step="1" value="0">'
+    + '<code id="lt-rot-v" style="grid-area:val;color:#8a93a3;min-width:34px;text-align:right">0°</code>'
+    + '</div>';
 
   markers.forEach((m) => {
     const row = document.createElement('div');
@@ -403,6 +426,27 @@ function setupLightTool(h, entries) {
       m.light.intensity = base[m.key];
       m.intEl.textContent = slider.value;
     });
+  });
+
+  const rotSlider = panel.querySelector('#lt-rot');
+  const rotVal    = panel.querySelector('#lt-rot-v');
+  const rgbUniforms = [
+    waterMat.uniforms.uLightRPos,
+    waterMat.uniforms.uLightGPos,
+    waterMat.uniforms.uLightBPos,
+  ];
+  rotSlider.addEventListener('input', () => {
+    const theta = Number(rotSlider.value) * Math.PI / 180;
+    const c = Math.cos(theta), s = Math.sin(theta);
+    baseLightPos.forEach((bp, i) => {
+      const nx = bp.x * c - bp.z * s;
+      const nz = bp.x * s + bp.z * c;
+      entries[i].light.position.set(nx, bp.y, nz);
+      markers[i].box.position.set(nx, bp.y, nz);
+      rgbUniforms[i].value.set(nx, bp.y, nz);
+    });
+    rotVal.textContent = rotSlider.value + '°';
+    refresh();
   });
 
   function refresh() {
@@ -614,10 +658,12 @@ function setupWaterTool() {
     + `<input type="color" id="wt-col" value="${initCol}" style="flex:0 0 auto;width:60px;height:20px"></div>`
     + '<div class="pix-tool__row"><span>Waves</span>'
     + '<label class="pix-tool__chk"><input type="checkbox" id="wt-waves" checked> on</label></div>'
-    + row('Str',     'wt-str', 0,    6,    0.1,   2.5,   1)
-    + row('Speed',   'wt-spd', 0,    0.2,  0.005, 0.055, 3)
-    + row('Scale',   'wt-scl', 0.01, 0.3,  0.005, 0.08,  3)
-    + row('Opacity', 'wt-opa', 0,    1,    0.02,  1,     2)
+    + row('Str',     'wt-str',   0,    6,    0.1,   2.5,   1)
+    + row('Speed',   'wt-spd',   0,    0.2,  0.005, 0.055, 3)
+    + row('Scale',   'wt-scl',   0.01, 0.3,  0.005, 0.08,  3)
+    + row('Opacity', 'wt-opa',   0,    1,    0.02,  1,     2)
+    + row('Lines',   'wt-lines', 0,    5,    0.05,  0.9,   2)
+    + row('PSX',     'wt-psx',   0,    300,  1,     0,     0)
     + '<div class="pix-tool__head" style="margin-top:10px;border-top:1px solid rgba(157,164,177,0.12);padding-top:8px"><span>Texture</span></div>'
     + row('Mix', 'wt-tex-mix', 0, 1, 0.02, 0, 2)
     + '<div class="pix-tool__row" style="margin-top:4px">'
@@ -656,6 +702,8 @@ function setupWaterTool() {
   bind('wt-spd',     (v) => { waterMat.uniforms.uSpeed.value = v; },          3);
   bind('wt-scl',     (v) => { waterMat.uniforms.uScale.value = v; },          3);
   bind('wt-opa',     (v) => { waterMat.uniforms.uOpacity.value = v; },        2);
+  bind('wt-lines',   (v) => { waterMat.uniforms.uContourBright.value = v; },  2);
+  bind('wt-psx',     (v) => { waterMat.uniforms.uPsxSnap.value = v; },        0);
   bind('wt-tex-mix', (v) => { waterMat.uniforms.uTexMix.value = v; },         2);
 
   const fileInput = panel.querySelector('#wt-tex-file');
@@ -751,6 +799,8 @@ function gatherSettings() {
       baseColor:     '#' + waterMat.uniforms.uBaseColor.value.getHexString(),
       wavesEnabled:  waterMat.uniforms.uWavesEnabled.value,
       texMix:        waterMat.uniforms.uTexMix.value,
+      contourBright: waterMat.uniforms.uContourBright.value,
+      psxSnap:       waterMat.uniforms.uPsxSnap.value,
     },
     beam: {
       pos:         { x: beam.position.x, y: beam.position.y, z: beam.position.z },
@@ -765,6 +815,7 @@ function gatherSettings() {
       red:   [lightRed.position.x,   lightRed.position.y,   lightRed.position.z],
       green: [lightGreen.position.x, lightGreen.position.y, lightGreen.position.z],
       blue:  [lightBlue.position.x,  lightBlue.position.y,  lightBlue.position.z],
+      top:   [lightTop.position.x,   lightTop.position.y,   lightTop.position.z],
     },
     bloom: {
       strength:  bloom.strength,
@@ -907,6 +958,7 @@ function animate() {
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);
     lightBlue.intensity  = base.blue  * (1 + Math.sin(t * 2.5 + 2) * 0.12);
+    lightTop.intensity   = base.top;
   }
 
   controls.update();

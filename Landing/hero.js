@@ -90,15 +90,16 @@ scene.add(fill);
 const lightRed   = new THREE.PointLight(0xff1500, 0, 0, 2);
 const lightGreen = new THREE.PointLight(0x00ff55, 0, 0, 2);
 const lightBlue  = new THREE.PointLight(0x1e5cff, 0, 0, 2);
-scene.add(lightRed, lightGreen, lightBlue);
-const base = { red: 80, green: 40, blue: 150 };
+const lightTop   = new THREE.PointLight(0xffffff, 0, 0, 1.5);
+scene.add(lightRed, lightGreen, lightBlue, lightTop);
+const base = { red: 80, green: 40, blue: 150, top: 0 };
 
 const beam = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 14, 0.4, 0);
 beam.castShadow = false;
 scene.add(beam, beam.target);
 
 /* ── WATER PLANE — GPU Perlin fBm + RGB blobs + contour ── */
-const waterGeo = new THREE.PlaneGeometry(500, 500, 4, 4);
+const waterGeo = new THREE.PlaneGeometry(500, 500, 64, 64);
 waterGeo.rotateX(-Math.PI / 2);
 
 const waterMat = new THREE.ShaderMaterial({
@@ -113,21 +114,29 @@ const waterMat = new THREE.ShaderMaterial({
     uWavesEnabled:   { value: 1.0 },
     uTexture:        { value: null },
     uTexMix:         { value: 0.0 },
-    uLightRPos: { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
-    uLightGPos: { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
-    uLightBPos: { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
-    uLightRInt: { value: 0.0 },
-    uLightGInt: { value: 0.0 },
-    uLightBInt: { value: 0.0 },
+    uLightRPos:     { value: new THREE.Vector3(-4.3, 6.0, -3.5) },
+    uLightGPos:     { value: new THREE.Vector3( 2.8, 6.0, -4.6) },
+    uLightBPos:     { value: new THREE.Vector3(-1.2, 6.3,  3.8) },
+    uLightRInt:     { value: 0.0 },
+    uLightGInt:     { value: 0.0 },
+    uLightBInt:     { value: 0.0 },
+    uContourBright: { value: 0.9 },
+    uPsxSnap:       { value: 0.0 },
   },
   vertexShader: /* glsl */`
     #include <fog_pars_vertex>
+    uniform float uPsxSnap;
     varying vec3 vWPos;
     void main(){
       vec4 wPos = modelMatrix * vec4(position, 1.0);
       vWPos = wPos.xyz;
       vec4 mvPosition = viewMatrix * wPos;
       gl_Position = projectionMatrix * mvPosition;
+      if (uPsxSnap > 0.0) {
+        gl_Position.xyz /= gl_Position.w;
+        gl_Position.xy = floor(gl_Position.xy * uPsxSnap + 0.5) / uPsxSnap;
+        gl_Position.xyz *= gl_Position.w;
+      }
       #include <fog_vertex>
     }`,
   fragmentShader: /* glsl */`
@@ -143,6 +152,7 @@ const waterMat = new THREE.ShaderMaterial({
     uniform float uTexMix;
     uniform vec3 uLightRPos, uLightGPos, uLightBPos;
     uniform float uLightRInt, uLightGInt, uLightBInt;
+    uniform float uContourBright;
     varying vec3 vWPos;
 
     float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+19.19);return fract(p.x*p.y);}
@@ -187,7 +197,7 @@ const waterMat = new THREE.ShaderMaterial({
       float contour = smoothstep(lineWidth, 0.0, contourVal)
                     + smoothstep(1.0 - lineWidth, 1.0, contourVal);
       contour *= waveZone * wOn;
-      col = mix(col, vec3(0.7, 0.85, 1.0), contour * 0.9);
+      col = mix(col, vec3(0.7, 0.85, 1.0), contour * uContourBright);
 
       vec3 texCol = texture2D(uTexture, uv * 0.5).rgb;
       col = mix(col, texCol, uTexMix);
@@ -252,11 +262,15 @@ function applyHeroSettings(s) {
   if (s.lights?.red)   lightRed.position.set(...s.lights.red);
   if (s.lights?.green) lightGreen.position.set(...s.lights.green);
   if (s.lights?.blue)  lightBlue.position.set(...s.lights.blue);
+  if (s.lights?.base?.top != null) { base.top = s.lights.base.top; lightTop.intensity = base.top; }
+  if (s.lights?.top)  lightTop.position.set(...s.lights.top);
   if (s.bloom) {
     if (s.bloom.strength  != null) bloom.strength  = s.bloom.strength;
     if (s.bloom.threshold != null) bloom.threshold = s.bloom.threshold;
     if (s.bloom.radius    != null) bloom.radius    = s.bloom.radius;
   }
+  if (s.water?.contourBright != null) u.uContourBright.value = s.water.contourBright;
+  if (s.water?.psxSnap       != null) u.uPsxSnap.value       = s.water.psxSnap;
 }
 
 new GLTFLoader().load('lighthouse.glb', (gltf) => {
@@ -278,9 +292,10 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
   scene.add(model);
 
   const reach = Math.max(size.x, size.z) * 1.2;
-  lightRed.position.set(-4.3, 6.0, -3.5);  lightRed.distance   = reach; lightRed.intensity   = base.red;
-  lightGreen.position.set(2.8, 6.0, -4.6); lightGreen.distance = reach; lightGreen.intensity = base.green;
-  lightBlue.position.set(-1.2, 6.3, 3.8);  lightBlue.distance  = reach; lightBlue.intensity  = base.blue;
+  lightRed.position.set(-4.3, 6.0, -3.5);  lightRed.distance   = reach;       lightRed.intensity   = base.red;
+  lightGreen.position.set(2.8, 6.0, -4.6); lightGreen.distance = reach;       lightGreen.intensity = base.green;
+  lightBlue.position.set(-1.2, 6.3, 3.8);  lightBlue.distance  = reach;       lightBlue.intensity  = base.blue;
+  lightTop.position.set(0, size.y * 1.8, 4); lightTop.distance  = reach * 2.5; lightTop.intensity   = base.top;
 
   beam.position.set(-0.40, 8.64, -0.95);
 
@@ -350,6 +365,7 @@ function animate() {
     lightRed.intensity   = base.red   * (1 + Math.sin(t * 2.1)     * 0.12);
     lightGreen.intensity = base.green * (1 + Math.sin(t * 1.7 + 1) * 0.12);
     lightBlue.intensity  = base.blue  * (1 + Math.sin(t * 2.5 + 2) * 0.12);
+    lightTop.intensity   = base.top;
   }
 
   controls.update();

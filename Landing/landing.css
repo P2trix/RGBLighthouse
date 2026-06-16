@@ -43,8 +43,7 @@ body::before {
 .grid-overlay {
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   width: min(1600px, 100vw);
   height: 100vh;
   pointer-events: none;
@@ -168,9 +167,6 @@ body::before {
   border-top: 1px solid var(--border);
   z-index: 1;
   max-width: 1600px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
 }
 
 .footer {
@@ -180,9 +176,11 @@ body::before {
   border-top: 1px solid var(--border);
   z-index: 1;
   max-width: 1600px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
+}
+
+/* hero stays full viewport width */
+#hero {
+  max-width: 100%;
 }
 
 .section::after,

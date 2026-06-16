@@ -210,8 +210,8 @@ body {
 
 /* ── HATCH COLUMNS (inside section__inner) ─────────────── */
 .section__hatch {
-  flex: 1;
-  min-width: 54px;
+  flex: 0 0 48px;
+  width: 48px;
   align-self: stretch;
   border-right: 1px solid var(--border);
   background-image: repeating-linear-gradient(

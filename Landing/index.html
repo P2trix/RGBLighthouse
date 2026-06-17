@@ -7,7 +7,7 @@
   <meta name="description" content="Andrzej Budzanowski (psychob) — backend developer with 8+ years of experience. Node.js, TypeScript, Solidity, Docker, interactive web.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Doto:ROND,wght@100,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
   <script type="importmap">
     {
@@ -690,7 +690,7 @@
     }, { threshold: 0.5 });
     counters.forEach(el => cio.observe(el));
 
-    /* hero dot-matrix title */
+    /* hero dot-matrix — hardcoded 5×7 bitmap font, no font rendering */
     (function () {
       const c = document.getElementById('hero-dots');
       if (!c) return;
@@ -700,59 +700,53 @@
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      const UP = 3; // supersample factor — render 3× larger, scale positions back
-      let FS = 110, CELL = 9, R = 4;
-      const REP = 45, FORCE = 9;
+      const CELL = 9, R = 4, REP = 45, FORCE = 9;
 
-      function sample(text, yOff) {
-        const rFS = FS * UP;
-        const rCELL = Math.max(6, Math.round(rFS * 0.08));
-        const oH = Math.ceil(rFS * 1.5);
-        const meas = document.createElement('canvas').getContext('2d');
-        meas.font = `${rFS}px 'Doto'`;
-        const oW = Math.min(Math.ceil(meas.measureText(text).width) + rCELL * 2, 10000);
-        const o = document.createElement('canvas'), oc = o.getContext('2d');
-        o.width = oW; o.height = oH;
-        oc.font = `${rFS}px 'Doto'`;
-        oc.fillStyle = '#fff';
-        oc.fillText(text, 0, rFS);
-        const { data, width, height } = oc.getImageData(0, 0, oW, oH);
-        const seen = new Set();
+      // 5-wide × 7-tall bitmap: each entry is 7 rows, each row a 5-bit mask (MSB = left col)
+      const F = {
+        A:[0b00100,0b01010,0b10001,0b10001,0b11111,0b10001,0b10001],
+        B:[0b11110,0b10001,0b10001,0b11110,0b10001,0b10001,0b11110],
+        C:[0b01110,0b10001,0b10000,0b10000,0b10000,0b10001,0b01110],
+        D:[0b11110,0b10001,0b10001,0b10001,0b10001,0b10001,0b11110],
+        E:[0b11111,0b10000,0b10000,0b11110,0b10000,0b10000,0b11111],
+        I:[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b11111],
+        K:[0b10001,0b10010,0b10100,0b11000,0b10100,0b10010,0b10001],
+        L:[0b10000,0b10000,0b10000,0b10000,0b10000,0b10000,0b11111],
+        N:[0b10001,0b11001,0b10101,0b10011,0b10001,0b10001,0b10001],
+        O:[0b01110,0b10001,0b10001,0b10001,0b10001,0b10001,0b01110],
+        P:[0b11110,0b10001,0b10001,0b11110,0b10000,0b10000,0b10000],
+        R:[0b11110,0b10001,0b10001,0b11110,0b10100,0b10010,0b10001],
+        S:[0b01110,0b10000,0b10000,0b01110,0b00001,0b00001,0b01110],
+        T:[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b00100],
+        V:[0b10001,0b10001,0b10001,0b10001,0b10001,0b01010,0b00100],
+        Y:[0b10001,0b10001,0b01010,0b00100,0b00100,0b00100,0b00100],
+        '/':[0b00001,0b00001,0b00010,0b00100,0b01000,0b10000,0b10000],
+        '.':[0b00000,0b00000,0b00000,0b00000,0b00000,0b00000,0b00100],
+      };
+
+      function build(text, x0, y0) {
         const pts = [];
-        for (let y = 0; y < height; y += 2)
-          for (let x = 0; x < width; x += 2)
-            if (data[(y * width + x) * 4 + 3] > 80) {
-              const gx = Math.round(x / rCELL) * rCELL;
-              const gy = Math.round(y / rCELL) * rCELL;
-              const key = gy * 10000 + gx;
-              if (!seen.has(key)) {
-                seen.add(key);
-                pts.push({ tx: Math.round(gx / UP), ty: Math.round(gy / UP) + yOff, x: 0, y: 0, vx: 0, vy: 0 });
-              }
-            }
+        let x = x0;
+        for (const ch of text) {
+          if (ch === ' ') { x += 4 * CELL; continue; }
+          const rows = F[ch];
+          if (!rows) { x += 6 * CELL; continue; }
+          for (let r = 0; r < 7; r++)
+            for (let col = 0; col < 5; col++)
+              if (rows[r] & (0b10000 >> col))
+                pts.push({ tx: x + col * CELL, ty: y0 + r * CELL, x: 0, y: 0, vx: 0, vy: 0 });
+          x += 6 * CELL;
+        }
         return pts;
       }
 
-      let dots = [], rafId = null, mx = -999, my = -999, inited = false;
+      let dots = [], rafId = null, mx = -999, my = -999;
 
       function init(scatter) {
-        if (!inited) {
-          const tmp = document.createElement('canvas').getContext('2d');
-          tmp.font = `${FS * UP}px 'Doto'`;
-          const tw = tmp.measureText('SOLIDITY / BACKEND').width / UP;
-          if (tw > W * 0.96) FS = Math.floor(FS * W * 0.96 / tw);
-          CELL = Math.max(6, Math.round(FS * 0.08));
-          R = CELL / 2 - 0.5;
-          inited = true;
-        }
-        const d1 = sample('SOLIDITY / BACKEND', 0);
-        const d2 = sample('DEVELOPER.', Math.round(FS * 1.25));
-        dots = [...d1.map(d => ({ ...d, a: 1.0 })), ...d2.map(d => ({ ...d, a: 1.0 }))];
+        const y1 = 20, y2 = y1 + 7 * CELL + Math.round(CELL * 3.5);
+        dots = [...build('SOLIDITY / BACKEND', 0, y1), ...build('DEVELOPER.', 0, y2)];
         if (scatter) {
-          dots.forEach(d => {
-            d.x = (Math.random() - 0.5) * W * 2.5 + W / 2;
-            d.y = (Math.random() - 0.5) * H * 2.5 + H / 2;
-          });
+          dots.forEach(d => { d.x = (Math.random()-0.5)*W*2.5+W/2; d.y = (Math.random()-0.5)*H*2.5+H/2; });
         } else {
           dots.forEach(d => { d.x = d.tx; d.y = d.ty; });
         }
@@ -764,39 +758,30 @@
         ctx.clearRect(0, 0, W, H);
         let live = false;
         for (const d of dots) {
-          const dx = d.x - mx, dy = d.y - my;
-          const dist2 = dx * dx + dy * dy;
-          if (dist2 < REP * REP && dist2 > 0) {
-            const dist = Math.sqrt(dist2);
-            const f = (REP - dist) / REP * FORCE;
-            d.vx += (dx / dist) * f;
-            d.vy += (dy / dist) * f;
+          const dx = d.x - mx, dy = d.y - my, dist2 = dx*dx + dy*dy;
+          if (dist2 < REP*REP && dist2 > 0) {
+            const dist = Math.sqrt(dist2), f = (REP-dist)/REP*FORCE;
+            d.vx += dx/dist*f; d.vy += dy/dist*f;
           }
-          d.vx = (d.vx + (d.tx - d.x) * 0.06) * 0.82;
-          d.vy = (d.vy + (d.ty - d.y) * 0.06) * 0.82;
+          d.vx = (d.vx + (d.tx-d.x)*0.06)*0.82;
+          d.vy = (d.vy + (d.ty-d.y)*0.06)*0.82;
           d.x += d.vx; d.y += d.vy;
           if (Math.abs(d.vx) > 0.05 || Math.abs(d.vy) > 0.05) live = true;
-          ctx.globalAlpha = d.a;
           ctx.fillStyle = '#F0F2F7';
-          ctx.beginPath(); ctx.arc(d.x, d.y, R, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(d.x, d.y, R, 0, Math.PI*2); ctx.fill();
         }
-        ctx.globalAlpha = 1;
         if (live || mx > -900) rafId = requestAnimationFrame(tick);
         else rafId = null;
       }
 
       c.addEventListener('mousemove', e => {
         const r = c.getBoundingClientRect();
-        mx = (e.clientX - r.left) * (W / r.width);
-        my = (e.clientY - r.top) * (H / r.height);
+        mx = (e.clientX-r.left)*(W/r.width); my = (e.clientY-r.top)*(H/r.height);
         if (!rafId) rafId = requestAnimationFrame(tick);
       });
       c.addEventListener('mouseleave', () => { mx = -999; my = -999; });
       c.addEventListener('click', () => init(true));
-
-      document.fonts.load(`${FS}px 'Doto'`)
-        .then(() => init(false))
-        .catch(() => init(false));
+      init(false);
     })();
 
     /* RSS blog feed — try live, fallback to hardcoded above */

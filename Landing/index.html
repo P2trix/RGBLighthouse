@@ -132,7 +132,10 @@
       <div class="section__hatch"></div>
       <div class="section__body">
         <div class="services__head">
-          <h2 class="section-title reveal-title dot-title">What I do.</h2>
+          <h2 class="section-title reveal-title dot-title" style="display:flex;align-items:center;gap:0.25em;font-size:clamp(36px,4.5vw,64px);line-height:normal;">
+            <span>What</span>
+            <canvas id="what-dots" aria-hidden="true"></canvas>
+          </h2>
           <p class="section-sub">Started in PHP, building full-stack web applications from the ground up. Over time I moved deeper into the backend — Node.js, TypeScript, distributed systems — and from there into blockchain, writing production smart contracts for Ethereum and EVM-compatible chains. Eight years in, always on the server side of things.</p>
         </div>
         <div class="services__grid">
@@ -323,7 +326,10 @@
       <div class="section__hatch"></div>
       <div class="section__body">
       <div class="work__head">
-        <h2 class="section-title reveal-title dot-title">Selected projects.</h2>
+        <h2 class="section-title reveal-title dot-title" style="display:flex;align-items:center;gap:0.25em;">
+          <span>Selected</span>
+          <canvas id="projects-dots" aria-hidden="true"></canvas>
+        </h2>
         <div class="work__tabs">
           <button class="tab is-active" data-filter="all">All</button>
           <button class="tab" data-filter="blockchain">Blockchain</button>
@@ -471,7 +477,10 @@
       <div class="exp__head">
         <div>
           <span class="section__eyebrow">// EXPERIENCE</span>
-          <h2 class="section-title reveal-title dot-title">Where I've shipped.</h2>
+          <h2 class="section-title reveal-title dot-title" style="display:flex;align-items:center;gap:0.25em;">
+            <span>Where I've</span>
+            <canvas id="shipped-dots" aria-hidden="true"></canvas>
+          </h2>
         </div>
         <p class="exp__meta">8+ years · 2 companies · 5 blockchain projects</p>
       </div>
@@ -548,7 +557,10 @@
       <div class="section__hatch"></div>
       <div class="section__body">
       <div class="work__head">
-        <h2 class="section-title reveal-title dot-title">From the blog.</h2>
+        <h2 class="section-title reveal-title dot-title" style="display:flex;align-items:center;gap:0.25em;">
+          <span>From the</span>
+          <canvas id="blog-dots" aria-hidden="true"></canvas>
+        </h2>
         <a href="https://blog.psychob.pl" class="btn btn--ghost" target="_blank" rel="noopener">All posts ↗</a>
       </div>
       <div class="work__grid" id="blog-posts">
@@ -782,6 +794,111 @@
       c.addEventListener('mouseleave', () => { mx = -999; my = -999; });
       c.addEventListener('click', () => init(true));
       init(false);
+    })();
+
+    /* section heading dot-matrix */
+    (function () {
+      const DPR = Math.min(window.devicePixelRatio || 1, 2);
+      const FORCE = 9;
+
+      const F = {
+        B:[0b11110,0b10001,0b10001,0b11110,0b10001,0b10001,0b11110],
+        C:[0b01110,0b10001,0b10000,0b10000,0b10000,0b10001,0b01110],
+        D:[0b11110,0b10001,0b10001,0b10001,0b10001,0b10001,0b11110],
+        E:[0b11111,0b10000,0b10000,0b11110,0b10000,0b10000,0b11111],
+        G:[0b01110,0b10001,0b10000,0b10111,0b10001,0b10001,0b01110],
+        H:[0b10001,0b10001,0b10001,0b11111,0b10001,0b10001,0b10001],
+        I:[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b11111],
+        J:[0b00111,0b00001,0b00001,0b00001,0b00001,0b10001,0b01110],
+        L:[0b10000,0b10000,0b10000,0b10000,0b10000,0b10000,0b11111],
+        O:[0b01110,0b10001,0b10001,0b10001,0b10001,0b10001,0b01110],
+        P:[0b11110,0b10001,0b10001,0b11110,0b10000,0b10000,0b10000],
+        R:[0b11110,0b10001,0b10001,0b11110,0b10100,0b10010,0b10001],
+        S:[0b01110,0b10000,0b10000,0b01110,0b00001,0b00001,0b01110],
+        T:[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b00100],
+        '.':[0b00000,0b00000,0b00000,0b00000,0b00000,0b00000,0b00100],
+      };
+
+      function buildDots(text, CELL, R, VPAD) {
+        const pts = [];
+        let x = R + 1;
+        for (const ch of text) {
+          if (ch === ' ') { x += 4 * CELL; continue; }
+          const rows = F[ch];
+          if (!rows) { x += 6 * CELL; continue; }
+          for (let r = 0; r < 7; r++)
+            for (let col = 0; col < 5; col++)
+              if (rows[r] & (0b10000 >> col))
+                pts.push({ tx: x + col * CELL, ty: VPAD + r * CELL, x: 0, y: 0, vx: 0, vy: 0 });
+          x += 6 * CELL;
+        }
+        const maxX = pts.reduce((m, d) => Math.max(m, d.tx), 0);
+        return { pts, W: maxX + R + 2 };
+      }
+
+      function setupCanvas(id, text) {
+        const c = document.getElementById(id);
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        const dotColor = getComputedStyle(c).color;
+
+        const CELL = 9, R = 4, VPAD = 8, H = 6 * CELL + 2 * VPAD, REP = 45;
+
+        const { pts, W } = buildDots(text, CELL, R, VPAD);
+
+        c.width = W * DPR; c.height = H * DPR;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        c.style.width = W + 'px';
+        c.style.height = H + 'px';
+
+        let dots = pts.map(d => ({ ...d, x: d.tx, y: d.ty }));
+        let rafId = null, mx = -999, my = -999;
+
+        function startTick() { if (!rafId) rafId = requestAnimationFrame(tick); }
+
+        function tick() {
+          ctx.clearRect(0, 0, W, H);
+          let live = false;
+          for (const d of dots) {
+            const dx = d.x - mx, dy = d.y - my, dist2 = dx*dx + dy*dy;
+            if (dist2 < REP*REP && dist2 > 0) {
+              const dist = Math.sqrt(dist2), f = (REP-dist)/REP*FORCE;
+              d.vx += dx/dist*f; d.vy += dy/dist*f;
+            }
+            d.vx = (d.vx + (d.tx-d.x)*0.06)*0.82;
+            d.vy = (d.vy + (d.ty-d.y)*0.06)*0.82;
+            d.x += d.vx; d.y += d.vy;
+            if (Math.abs(d.vx) > 0.05 || Math.abs(d.vy) > 0.05) live = true;
+            ctx.fillStyle = dotColor;
+            ctx.beginPath(); ctx.arc(d.x, d.y, R, 0, Math.PI*2); ctx.fill();
+          }
+          if (live || mx > -900) rafId = requestAnimationFrame(tick);
+          else rafId = null;
+        }
+
+        c.addEventListener('mousemove', e => {
+          const rect = c.getBoundingClientRect();
+          mx = (e.clientX-rect.left)*(W/rect.width);
+          my = (e.clientY-rect.top)*(H/rect.height);
+          startTick();
+        });
+        c.addEventListener('mouseleave', () => { mx = -999; my = -999; });
+        c.addEventListener('click', () => {
+          dots.forEach(d => {
+            d.x = (Math.random()-0.5)*W*2.5+W/2;
+            d.y = (Math.random()-0.5)*H*2.5+H/2;
+            d.vx = 0; d.vy = 0;
+          });
+          startTick();
+        });
+
+        tick();
+      }
+
+      setupCanvas('what-dots', 'I DO.');
+      setupCanvas('projects-dots', 'PROJECTS.');
+      setupCanvas('shipped-dots', 'SHIPPED.');
+      setupCanvas('blog-dots', 'BLOG.');
     })();
 
     /* RSS blog feed — try live, fallback to hardcoded above */

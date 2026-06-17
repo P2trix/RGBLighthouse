@@ -96,7 +96,7 @@
       </div>
 
       <div class="hero__text">
-        <p class="hero__name">Andrzej Budzanowski / psychob</p>
+        <p class="hero__name">Andrzej Budzanowski / Psychob</p>
         <canvas id="hero-dots" aria-label="Solidity / Backend Developer" style="display:block;width:100%;aspect-ratio:1450/280;margin-bottom:14px;"></canvas>
         <p class="hero__desc">From PHP full-stack to backend and blockchain specialist — eight years shipping production systems that have to work. I build scalable APIs, smart contracts, and DeFi platforms using TypeScript, Node.js, and Solidity. Infrastructure runs under the hood with Docker, Kubernetes, and CI/CD pipelines. Currently open to backend contracts and blockchain consulting.</p>
         <div class="hero__links">
@@ -700,7 +700,7 @@
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      const FS = 86, SP = 6, R = 4;
+      const FS = 86, SP = 9, R = 4;
       const REP = 45, FORCE = 9;
 
       function sample(text, fontStr, yOff) {
@@ -714,12 +714,6 @@
           for (let x = 0; x < width; x += SP)
             if (data[(y * width + x) * 4 + 3] > 60)
               pts.push({ tx: x, ty: y + yOff, x: 0, y: 0, vx: 0, vy: 0 });
-        if (pts.length > 0) {
-          const minX = Math.min(...pts.map(p => p.tx));
-          const maxX = Math.max(...pts.map(p => p.tx));
-          const shift = (W - (maxX - minX)) / 2 - minX;
-          pts.forEach(p => p.tx += shift);
-        }
         return pts;
       }
 

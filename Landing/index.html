@@ -95,10 +95,11 @@
         <span class="hud-dot hud-dot--green"></span>
       </div>
 
+      <canvas id="hero-dots" class="hero__dots" aria-label="Backend engineer"></canvas>
+
       <div class="hero__text">
         <p class="tag">— Andrzej Budzanowski / psychob</p>
-        <canvas id="hero-dots" aria-label="We light the dark." style="display:block;width:100%;margin-bottom:20px;"></canvas>
-        <p class="hero__desc">Backend systems, blockchain platforms<br>and interactive experiences — from scratch.</p>
+        <p class="hero__desc">Eight years of production backend, blockchain platforms,<br>and systems that have to work.</p>
         <div class="hero__links">
           <a href="#work" class="btn btn--outline">View projects</a>
           <a href="#contact" class="btn btn--ghost">Get in touch ↗</a>
@@ -694,16 +695,16 @@
       if (!c) return;
       const ctx = c.getContext('2d');
       const DPR = Math.min(window.devicePixelRatio || 1, 2);
-      const W = 920, H = 360;
+      const W = 1600, H = 480;
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      const FS = 120, SP = 14, R = 5;
-      const REP = 60, FORCE = 10;
+      const FS = 160, SP = 16, R = 7;
+      const REP = 80, FORCE = 14;
 
       function sample(text, fontStr, yOff) {
         const o = document.createElement('canvas'), oc = o.getContext('2d');
-        o.width = 1200; o.height = Math.ceil(FS * 1.8);
+        o.width = 2400; o.height = Math.ceil(FS * 1.9);
         oc.font = fontStr; oc.fillStyle = '#fff';
         oc.fillText(text, 0, FS);
         const { data, width, height } = oc.getImageData(0, 0, o.width, o.height);
@@ -712,6 +713,12 @@
           for (let x = 0; x < width; x += SP)
             if (data[(y * width + x) * 4 + 3] > 60)
               pts.push({ tx: x, ty: y + yOff, x: 0, y: 0, vx: 0, vy: 0 });
+        if (pts.length > 0) {
+          const minX = Math.min(...pts.map(p => p.tx));
+          const maxX = Math.max(...pts.map(p => p.tx));
+          const shift = (W - (maxX - minX)) / 2 - minX;
+          pts.forEach(p => p.tx += shift);
+        }
         return pts;
       }
 
@@ -719,8 +726,8 @@
 
       function init(scatter) {
         const font = `${FS}px 'LU Dot Matrix'`;
-        const d1 = sample('WE LIGHT', font, 0);
-        const d2 = sample('THE DARK.', font, Math.round(FS * 1.3));
+        const d1 = sample('BACKEND', font, 0);
+        const d2 = sample('ENGINEER.', font, Math.round(FS * 1.3));
         dots = [
           ...d1.map(d => ({ ...d, a: 1.0 })),
           ...d2.map(d => ({ ...d, a: 1.0 }))

@@ -7,7 +7,7 @@
   <meta name="description" content="Andrzej Budzanowski (psychob) — backend developer with 8+ years of experience. Node.js, TypeScript, Solidity, Docker, interactive web.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100;400;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
   <script type="importmap">
     {
@@ -700,9 +700,7 @@
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      const FS = 110;
-      const CELL = 9;
-      const R = 4;
+      let FS = 110, CELL = 9, R = 4;
       const REP = 45, FORCE = 9;
 
       function sample(text, fontStr, yOff) {
@@ -724,10 +722,19 @@
         return pts;
       }
 
-      let dots = [], rafId = null, mx = -999, my = -999;
+      let dots = [], rafId = null, mx = -999, my = -999, inited = false;
 
       function init(scatter) {
-        const font = `${FS}px 'Ndot55'`;
+        if (!inited) {
+          const tmp = document.createElement('canvas').getContext('2d');
+          tmp.font = `${FS}px 'Doto'`;
+          const tw = tmp.measureText('SOLIDITY / BACKEND').width;
+          if (tw > W * 0.96) FS = Math.floor(FS * W * 0.96 / tw);
+          CELL = Math.max(6, Math.round(FS * 0.08));
+          R = CELL / 2 - 0.5;
+          inited = true;
+        }
+        const font = `${FS}px 'Doto'`;
         const d1 = sample('SOLIDITY / BACKEND', font, 0);
         const d2 = sample('DEVELOPER.', font, Math.round(FS * 1.25));
         dots = [...d1.map(d => ({ ...d, a: 1.0 })), ...d2.map(d => ({ ...d, a: 1.0 }))];
@@ -777,8 +784,9 @@
       c.addEventListener('mouseleave', () => { mx = -999; my = -999; });
       c.addEventListener('click', () => init(true));
 
-      const ndot = new FontFace('Ndot55', 'url(Ndot55-Regular.otf)');
-      ndot.load().then(f => { document.fonts.add(f); init(false); }).catch(() => init(false));
+      document.fonts.load(`${FS}px 'Doto'`)
+        .then(() => init(false))
+        .catch(() => init(false));
     })();
 
     /* RSS blog feed — try live, fallback to hardcoded above */

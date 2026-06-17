@@ -424,7 +424,7 @@ body {
   left: 64px;
   z-index: 3;
   pointer-events: none;
-  max-width: 720px;
+  max-width: 850px;
 }
 .hero__text .btn,
 .hero__text canvas { pointer-events: all; }

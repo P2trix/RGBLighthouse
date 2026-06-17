@@ -7,7 +7,7 @@
   <meta name="description" content="Andrzej Budzanowski (psychob) — backend developer with 8+ years of experience. Node.js, TypeScript, Solidity, Docker, interactive web.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100;400;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Doto:ROND,wght@100,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
   <script type="importmap">
     {
@@ -700,24 +700,35 @@
       c.width = W * DPR; c.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
+      const UP = 3; // supersample factor — render 3× larger, scale positions back
       let FS = 110, CELL = 9, R = 4;
       const REP = 45, FORCE = 9;
 
-      function sample(text, fontStr, yOff) {
+      function sample(text, yOff) {
+        const rFS = FS * UP;
+        const rCELL = Math.max(6, Math.round(rFS * 0.08));
+        const oH = Math.ceil(rFS * 1.5);
+        const meas = document.createElement('canvas').getContext('2d');
+        meas.font = `${rFS}px 'Doto'`;
+        const oW = Math.min(Math.ceil(meas.measureText(text).width) + rCELL * 2, 10000);
         const o = document.createElement('canvas'), oc = o.getContext('2d');
-        o.width = 3000; o.height = Math.ceil(FS * 2.2);
-        oc.font = fontStr; oc.fillStyle = '#fff';
-        oc.fillText(text, 0, FS);
-        const { data, width, height } = oc.getImageData(0, 0, o.width, o.height);
+        o.width = oW; o.height = oH;
+        oc.font = `${rFS}px 'Doto'`;
+        oc.fillStyle = '#fff';
+        oc.fillText(text, 0, rFS);
+        const { data, width, height } = oc.getImageData(0, 0, oW, oH);
         const seen = new Set();
         const pts = [];
         for (let y = 0; y < height; y += 2)
           for (let x = 0; x < width; x += 2)
             if (data[(y * width + x) * 4 + 3] > 80) {
-              const gx = Math.round(x / CELL) * CELL;
-              const gy = Math.round(y / CELL) * CELL;
-              const key = gy * 3000 + gx;
-              if (!seen.has(key)) { seen.add(key); pts.push({ tx: gx, ty: gy + yOff, x: 0, y: 0, vx: 0, vy: 0 }); }
+              const gx = Math.round(x / rCELL) * rCELL;
+              const gy = Math.round(y / rCELL) * rCELL;
+              const key = gy * 10000 + gx;
+              if (!seen.has(key)) {
+                seen.add(key);
+                pts.push({ tx: Math.round(gx / UP), ty: Math.round(gy / UP) + yOff, x: 0, y: 0, vx: 0, vy: 0 });
+              }
             }
         return pts;
       }
@@ -727,16 +738,15 @@
       function init(scatter) {
         if (!inited) {
           const tmp = document.createElement('canvas').getContext('2d');
-          tmp.font = `${FS}px 'Doto'`;
-          const tw = tmp.measureText('SOLIDITY / BACKEND').width;
+          tmp.font = `${FS * UP}px 'Doto'`;
+          const tw = tmp.measureText('SOLIDITY / BACKEND').width / UP;
           if (tw > W * 0.96) FS = Math.floor(FS * W * 0.96 / tw);
           CELL = Math.max(6, Math.round(FS * 0.08));
           R = CELL / 2 - 0.5;
           inited = true;
         }
-        const font = `${FS}px 'Doto'`;
-        const d1 = sample('SOLIDITY / BACKEND', font, 0);
-        const d2 = sample('DEVELOPER.', font, Math.round(FS * 1.25));
+        const d1 = sample('SOLIDITY / BACKEND', 0);
+        const d2 = sample('DEVELOPER.', Math.round(FS * 1.25));
         dots = [...d1.map(d => ({ ...d, a: 1.0 })), ...d2.map(d => ({ ...d, a: 1.0 }))];
         if (scatter) {
           dots.forEach(d => {

@@ -7,7 +7,7 @@
   <meta name="description" content="Andrzej Budzanowski (psychob) — backend developer with 8+ years of experience. Node.js, TypeScript, Solidity, Docker, interactive web.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Jost:wght@900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
   <script type="importmap">
     {
@@ -727,7 +727,7 @@
       let dots = [], rafId = null, mx = -999, my = -999;
 
       function init(scatter) {
-        const font = `${FS}px 'LU Dot Matrix'`;
+        const font = `900 ${FS}px 'Jost'`;
         const d1 = sample('SOLIDITY / BACKEND', font, 0);
         const d2 = sample('DEVELOPER.', font, Math.round(FS * 1.3));
         dots = [...d1.map(d => ({ ...d, a: 1.0 })), ...d2.map(d => ({ ...d, a: 1.0 }))];
@@ -777,9 +777,8 @@
       c.addEventListener('mouseleave', () => { mx = -999; my = -999; });
       c.addEventListener('click', () => init(true));
 
-      new FontFace('LU Dot Matrix', "url('fonts/lu-medium.ttf')")
-        .load()
-        .then(f => { document.fonts.add(f); init(false); })
+      document.fonts.load(`900 ${FS}px 'Jost'`)
+        .then(() => init(false))
         .catch(() => init(false));
     })();
 

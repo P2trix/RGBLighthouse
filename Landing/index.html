@@ -7,7 +7,7 @@
   <meta name="description" content="Andrzej Budzanowski (psychob) — backend developer with 8+ years of experience. Node.js, TypeScript, Solidity, Docker, interactive web.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Barlow+Condensed:wght@300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
   <script type="importmap">
     {
@@ -701,7 +701,7 @@
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       const FS = 130;
-      const CELL = Math.round(FS * 0.075); // ~10px → ~10 dots per letter height
+      const CELL = 8; // thin stroke ~5px fills exactly 1 cell
       const R = CELL / 2 - 0.5;
       const REP = 45, FORCE = 9;
 
@@ -715,7 +715,7 @@
         const pts = [];
         for (let y = 0; y < height; y += 2)
           for (let x = 0; x < width; x += 2)
-            if (data[(y * width + x) * 4 + 3] > 100) {
+            if (data[(y * width + x) * 4 + 3] > 50) {
               const gx = Math.round(x / CELL) * CELL;
               const gy = Math.round(y / CELL) * CELL;
               const key = gy * 2400 + gx;
@@ -727,7 +727,7 @@
       let dots = [], rafId = null, mx = -999, my = -999;
 
       function init(scatter) {
-        const font = `${FS}px 'Bebas Neue'`;
+        const font = `300 ${FS}px 'Barlow Condensed'`;
         const d1 = sample('SOLIDITY / BACKEND', font, 0);
         const d2 = sample('DEVELOPER.', font, Math.round(FS * 1.3));
         dots = [...d1.map(d => ({ ...d, a: 1.0 })), ...d2.map(d => ({ ...d, a: 1.0 }))];
@@ -777,7 +777,7 @@
       c.addEventListener('mouseleave', () => { mx = -999; my = -999; });
       c.addEventListener('click', () => init(true));
 
-      document.fonts.load(`${FS}px 'Bebas Neue'`)
+      document.fonts.load(`300 ${FS}px 'Barlow Condensed'`)
         .then(() => init(false))
         .catch(() => init(false));
     })();

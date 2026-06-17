@@ -216,7 +216,8 @@ body {
 
 /* ── EXPERTISE — nowy układ ────────────────────────────── */
 #expertise {
-  height: 100svh;
+  min-height: 100svh;
+  height: auto;
 }
 #expertise .section__label {
   flex: 0 0 48px;
@@ -266,7 +267,6 @@ body {
 }
 #expertise.is-active  .section__label span { color: #ff4040; }
 #work.is-active       .section__label span { color: #40ff80; }
-#stack.is-active      .section__label span { color: #4080ff; }
 #experience.is-active .section__label span { color: #ff4040; }
 #blog.is-active       .section__label span { color: #40ff80; }
 #contact.is-active    .section__label span { color: #4080ff; }
@@ -859,6 +859,27 @@ body {
   padding: 3px 9px;
   border: 1px solid var(--border);
   display: inline-block;
+}
+
+/* ── EXPERTISE TOOLS SUB-SECTION ─────────────────────── */
+.expertise__tools {
+  border-top: 1px solid var(--border);
+  padding-top: 56px;
+  margin-top: 56px;
+}
+.expertise__tools-title {
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  margin-bottom: 10px;
+}
+.expertise__tools-desc {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 560px;
 }
 
 /* ── STACK ────────────────────────────────────────────── */

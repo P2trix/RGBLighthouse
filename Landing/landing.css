@@ -424,18 +424,18 @@ body {
   left: 64px;
   z-index: 3;
   pointer-events: none;
-  max-width: 520px;
+  max-width: 720px;
 }
 .hero__text .btn,
 .hero__text canvas { pointer-events: all; }
 
 .hero__name {
-  font-size: clamp(22px, 2.8vw, 38px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 400;
   color: var(--fg);
   margin-bottom: 14px;
+  white-space: nowrap;
 }
 
 .tag {

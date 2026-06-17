@@ -426,17 +426,16 @@ body {
   pointer-events: none;
   max-width: 520px;
 }
-.hero__text .btn { pointer-events: all; }
+.hero__text .btn,
+.hero__text canvas { pointer-events: all; }
 
-.hero__dots {
-  position: absolute;
-  bottom: 230px;
-  left: 64px;
-  right: 64px;
-  display: block;
-  pointer-events: all;
-  aspect-ratio: 1600 / 480;
-  height: auto;
+.hero__name {
+  font-size: clamp(22px, 2.8vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--fg);
+  margin-bottom: 14px;
 }
 
 .tag {

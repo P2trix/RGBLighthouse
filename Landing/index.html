@@ -743,8 +743,8 @@
       let dots = [], rafId = null, mx = -999, my = -999;
 
       function init(scatter) {
-        const y1 = 20, y2 = y1 + 7 * CELL + Math.round(CELL * 3.5);
-        dots = [...build('SOLIDITY / BACKEND', 0, y1), ...build('DEVELOPER.', 0, y2)];
+        const y1 = 20, y2 = y1 + 7 * CELL + Math.round(CELL * 3.5), xOff = R + 1;
+        dots = [...build('SOLIDITY / BACKEND', xOff, y1), ...build('DEVELOPER.', xOff, y2)];
         if (scatter) {
           dots.forEach(d => { d.x = (Math.random()-0.5)*W*2.5+W/2; d.y = (Math.random()-0.5)*H*2.5+H/2; });
         } else {

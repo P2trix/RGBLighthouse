@@ -1228,10 +1228,13 @@ body {
   border-top: 1px solid var(--border);
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
 }
 
 .contact__bar {
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;

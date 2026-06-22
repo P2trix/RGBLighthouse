@@ -94,7 +94,7 @@
         <p class="hero__desc">From PHP full-stack to backend and blockchain specialist — eight years shipping production systems that have to work. I build scalable APIs, smart contracts, and DeFi platforms using TypeScript, Node.js, and Solidity. Infrastructure runs under the hood with Docker, Kubernetes, and CI/CD pipelines. Currently open to backend contracts and blockchain consulting.</p>
         <div class="hero__links">
           <a href="#work" class="btn btn--outline">View projects</a>
-          <a href="#contact" class="btn btn--ghost">Get in touch ↗</a>
+          <a href="#contact" class="btn btn--accent">Get in touch ↗</a>
         </div>
       </div>
 
@@ -104,12 +104,12 @@
           <span class="hero__meta-label">years experience</span>
         </div>
         <div class="hero__meta-item">
-          <span class="hero__meta-num counter" data-target="5">0</span>
+          <span class="hero__meta-num">2137</span>
           <span class="hero__meta-label">blockchain projects</span>
         </div>
         <div class="hero__meta-item">
           <span class="hero__meta-num">∞</span>
-          <span class="hero__meta-label">coffee consumed</span>
+          <span class="hero__meta-label">shipped code</span>
         </div>
       </div>
 
@@ -739,9 +739,8 @@
           <span>From the</span>
           <canvas id="blog-dots" aria-hidden="true"></canvas>
         </h2>
-        <a href="https://blog.psychob.pl" class="btn btn--ghost" target="_blank" rel="noopener">All posts ↗</a>
       </div>
-      <div class="work__grid" id="blog-posts">
+      <div class="work__grid blog__grid" id="blog-posts">
         <!-- Hardcoded fallback — JS overwrites with live RSS -->
         <article class="project-card">
           <div class="project-card__img">
@@ -784,6 +783,15 @@
             <p class="project-card__desc">Practical ffmpeg commands for trimming video files without re-encoding — preserving quality and keeping file size minimal.</p>
             <a href="https://blog.psychob.pl/2019/12/przycinanie-plikow-przy-pomocy-ffmpeg/" class="project-card__link" target="_blank" rel="noopener">Read post ↗</a>
           </div>
+        </article>
+        <article class="project-card blog__more-card">
+          <a href="https://blog.psychob.pl" target="_blank" rel="noopener" class="blog__more-link">
+            <div class="blog__more-body">
+              <span class="blog__more-eyebrow">More reading</span>
+              <span class="blog__more-cta">Visit the full blog ↗</span>
+              <span class="blog__more-sub">psychob.pl/blog</span>
+            </div>
+          </a>
         </article>
       </div>
     </div>
@@ -836,7 +844,7 @@
         <img src="logo.svg" alt="" class="footer__logo" aria-hidden="true">
         <span class="footer__copy">© 2026 Andrzej Budzanowski / psychob</span>
       </div>
-      <span class="footer__built">Built with Three.js · No frameworks hurt in the making.</span>
+      <span class="footer__built">Built by PW · No Clanker hurt in the making</span>
     </div>
   </footer>
 
@@ -1114,7 +1122,15 @@
               <a href="${link}" class="project-card__link" target="_blank" rel="noopener">Read post ↗</a>
             </div>
           </article>`;
-        }).join('');
+        }).join('') + `<article class="project-card blog__more-card">
+          <a href="https://blog.psychob.pl" target="_blank" rel="noopener" class="blog__more-link">
+            <div class="blog__more-body">
+              <span class="blog__more-eyebrow">More reading</span>
+              <span class="blog__more-cta">Visit the full blog ↗</span>
+              <span class="blog__more-sub">psychob.pl/blog</span>
+            </div>
+          </a>
+        </article>`;
       } catch (_) { /* keep hardcoded fallback */ }
     })();
 

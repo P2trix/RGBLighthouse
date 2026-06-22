@@ -14,7 +14,15 @@ const loaderEl = document.getElementById('loader');
 const hintEl = document.getElementById('hint');
 const errorEl = document.getElementById('error');
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (e) {
+  loaderEl.classList.add('is-hidden');
+  document.body.insertAdjacentHTML('beforeend',
+    `<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#9DA4B1;font:14px/1.4 monospace;text-align:center;padding:24px;z-index:99;background:#000510">WebGL jest wyłączony lub sterownik karty graficznej jest uszkodzony.<br><br>Zaktualizuj sterowniki GPU i/lub sprawdź czy WebGL jest włączone w przeglądarce (chrome://gpu).</div>`);
+  throw e;
+}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;

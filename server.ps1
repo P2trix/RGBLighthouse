@@ -28,6 +28,7 @@ while ($listener.IsListening) {
 
   $path = $req.Url.LocalPath
   if ($path -eq '/') { $path = '/index.html' }
+  if ($path.EndsWith('/') -and $path -ne '/') { $path = $path + 'index.html' }
   $file = Join-Path $root $path.TrimStart('/')
 
   if (Test-Path $file -PathType Leaf) {

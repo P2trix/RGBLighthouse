@@ -11,7 +11,15 @@ const BG = 0x07090F;
 const canvas = document.getElementById('canvas');
 const loaderEl = document.getElementById('loader');
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+} catch (e) {
+  loaderEl.classList.add('is-hidden');
+  canvas.insertAdjacentHTML('afterend',
+    `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9DA4B1;font:14px/1.4 monospace;text-align:center;padding:24px">WebGL jest wyłączony lub sterownik karty graficznej jest uszkodzony.<br><br>Zaktualizuj sterowniki GPU i/lub sprawdź czy WebGL jest włączone w przeglądarce (chrome://gpu).<br><br><small>Jeśli używasz zdalnego pulpitu — WebGL nie działa przez RDP.</small></div>`);
+  throw e;
+}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;

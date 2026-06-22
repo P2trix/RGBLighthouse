@@ -44,5 +44,8 @@
   <div id="saveTool" class="save-tool"></div>
 
   <script type="module" src="main.js"></script>
+
+  <!-- loader fallback — hides loader if module fails to load -->
+  <script>setTimeout(function(){var e=document.getElementById('loader');if(e&&!e.classList.contains('is-hidden'))e.classList.add('is-hidden')},15000)</script>
 </body>
 </html>

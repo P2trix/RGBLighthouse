@@ -656,6 +656,10 @@
   </footer>
 
   <script type="module" src="hero.js"></script>
+
+  <!-- loader fallback — hides loader if hero.js module fails to load -->
+  <script>setTimeout(function(){var e=document.getElementById('loader');if(e&&!e.classList.contains('is-hidden'))e.classList.add('is-hidden')},15000)</script>
+
   <script>
     /* tabs */
     const tabs = document.querySelectorAll('.tab');

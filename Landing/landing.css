@@ -1252,6 +1252,128 @@ body {
   padding: 3px 9px;
 }
 
+/* ── SHOW ALL TOGGLE ──────────────────────────────────────── */
+.exp__entry--hidden {
+  display: none;
+}
+
+.exp__entry--hidden.exp__entry--revealed {
+  display: grid;
+}
+
+.exp__full {
+  display: none;
+}
+
+.exp__full--revealed {
+  display: block;
+  animation: expSlideDown 0.45s ease both;
+  animation-delay: var(--anim-delay, 0s);
+}
+
+.exp__compact--hidden {
+  display: none;
+}
+
+@keyframes expSlideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.exp__show-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 40px auto 0;
+  padding: 10px 22px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  color: var(--accent);
+  transition: background 0.15s, color 0.15s;
+}
+
+.exp__show-all:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.exp__show-all-icon {
+  transition: transform 0.25s ease;
+  width: 12px;
+  height: 12px;
+}
+
+.exp__show-all--expanded .exp__show-all-icon {
+  transform: rotate(180deg);
+}
+
+.exp__full-heading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 20px 0 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.exp__project {
+  margin-bottom: 20px;
+}
+
+.exp__project-name {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+.exp__project-desc {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.exp__full .exp__bullets {
+  margin-bottom: 0;
+}
+
+.exp__full .exp__bullets li {
+  font-size: 10px;
+}
+
+.exp__full .exp__tags {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* expanded white text */
+.exp__full--revealed .exp__project-desc,
+.exp__full--revealed .exp__bullets li,
+.exp__full--revealed .exp__company-desc {
+  color: var(--fg);
+  opacity: 1;
+}
+
+.exp__full--revealed .exp__tags span {
+  color: var(--fg);
+  border-color: var(--border-hi);
+}
+
 /* ── CONTACT — compact solid bar ────────────────────────── */
 #contact {
   background: var(--bg2);

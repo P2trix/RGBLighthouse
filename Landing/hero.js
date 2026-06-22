@@ -333,7 +333,20 @@ new GLTFLoader().load('lighthouse.glb', (gltf) => {
 
   loaderEl.classList.add('is-hidden');
   loaded = true;
+}, undefined, (err) => {
+  console.error('GLB load error:', err);
+  loaderEl.classList.add('is-hidden');
+  loaded = true; // still reveal scene, just without model
 });
+
+// Timeout fallback — reveal scene even if model never loads
+setTimeout(() => {
+  if (!loaded) {
+    loaderEl.classList.add('is-hidden');
+    loaded = true;
+    console.warn('Model load timed out — revealing scene without model');
+  }
+}, 15000);
 
 const clock = new THREE.Clock();
 let prevT = 0;
@@ -373,7 +386,7 @@ function animate() {
 }
 animate();
 
-const hero = document.querySelector('.hero');
+const hero = document.querySelector('.hero-section');
 const ro = new ResizeObserver(() => {
   const w = hero.offsetWidth, h = hero.offsetHeight;
   camera.aspect = w / h;

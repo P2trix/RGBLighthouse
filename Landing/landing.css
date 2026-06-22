@@ -731,9 +731,27 @@ body {
   overflow: hidden;
   color: var(--fg);
 }
-.service-card__visual svg {
+.service-card__visual svg,
+.ascii-art {
   width: 100%;
   height: 100%;
+}
+
+.ascii-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 8px; /* Mniejszy font dla większej szczegółowości */
+  line-height: 1;
+  color: var(--fg);
+  white-space: pre;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  transform: scale(1.2); /* Lekkie powiększenie dla głębi */
 }
 
 /* ── WORK ─────────────────────────────────────────────── */

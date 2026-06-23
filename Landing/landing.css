@@ -1265,22 +1265,40 @@ body {
   }
   .exp__entry {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 8px;
     width: 100vw;
     margin-left: -24px;
+    margin-bottom: 32px;
   }
+  .exp__entry:last-child { margin-bottom: 0; }
   .exp__date {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
+    display: contents;
+  }
+  .exp__date span {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.06em;
     color: var(--muted);
-    padding: 0 24px;
   }
-  .exp__dot-col { display: none; }
+  .exp__date span:first-child {
+    margin-left: 24px;
+  }
+  .exp__dot-col {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    padding-top: 0;
+  }
+  .exp__card {
+    width: 100%;
+    padding: 24px 24px 28px;
+    border-left: none;
+    border-right: none;
+  }
   .contact__bar { padding: 40px 0; gap: 32px; }
 
   /* expertise grid: single column on mobile */
@@ -1303,9 +1321,6 @@ body {
 
   /* ─── project-card: prevent grid overflow ──────────── */
   .project-card { overflow: hidden; }
-
-  /* ─── experience card full width ───────────────────── */
-  .exp__card { padding: 24px 24px 28px; border-left: none; border-right: none; }
 }
 
 @media (max-width: 480px) {

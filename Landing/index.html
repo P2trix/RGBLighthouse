@@ -158,7 +158,7 @@
           </div>
           <div class="service-card">
             <div class="service-card__visual">
-              <canvas class="ascii-canvas" data-shape="sphere" aria-hidden="true"></canvas>
+              <canvas class="ascii-canvas" data-shape="network" aria-hidden="true"></canvas>
             </div>
             <div class="service-card__num">04</div>
             <h3 class="service-card__title">Data &amp; Architecture</h3>
@@ -1147,18 +1147,36 @@
           }
           return pts;
         },
-        sphere: () => {
+        network: () => {
           const pts = [];
-          for (let i = 0; i < 40; i++) {
-            const lat = (i / 40) * Math.PI;
-            for (let j = 0; j < 60; j++) {
-              const lon = (j / 60) * Math.PI * 2;
-              const r = 1.2;
-              pts.push({
-                x: r * Math.sin(lat) * Math.cos(lon),
-                y: r * Math.cos(lat),
-                z: r * Math.sin(lat) * Math.sin(lon)
-              });
+          const nodes = [];
+          const N = 40;
+          for (let i = 0; i < N; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const r = Math.cbrt(Math.random()) * 1.5;
+            nodes.push({ x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.cos(phi), z: r * Math.sin(phi) * Math.sin(theta) });
+          }
+          const dist = (a, b) => Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)+(a.z-b.z)*(a.z-b.z));
+          const connected = new Set();
+          for (let i = 0; i < N; i++) {
+            const neighbors = [];
+            for (let j = 0; j < N; j++) if (i !== j) neighbors.push({ d: dist(nodes[i], nodes[j]), j });
+            neighbors.sort((a, b) => a.d - b.d);
+            for (let n = 0; n < 3 && n < neighbors.length; n++) {
+              const key = i < neighbors[n].j ? i + '-' + neighbors[n].j : neighbors[n].j + '-' + i;
+              if (connected.has(key)) continue;
+              connected.add(key);
+              const a = nodes[i], b = nodes[neighbors[n].j];
+              for (let kk = 0; kk < 20; kk++) {
+                const t = kk / 20;
+                pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
+              }
+            }
+          }
+          for (const n of nodes) {
+            for (let k = 0; k < 10; k++) {
+              pts.push({ x: n.x + (Math.random() - 0.5) * 0.08, y: n.y + (Math.random() - 0.5) * 0.08, z: n.z + (Math.random() - 0.5) * 0.08 });
             }
           }
           return pts;
@@ -1167,6 +1185,14 @@
 
       const cache = {};
       for (const [k, fn] of Object.entries(SHAPES)) cache[k] = fn();
+
+      const shapeRadius = {};
+      for (const [k, pts] of Object.entries(cache)) {
+        if (k === 'tesseract') { shapeRadius.tesseract = 1.56 * 0.8; continue; }
+        let maxR = 0;
+        for (const p of pts) { const r = Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z); if (r > maxR) maxR = r; }
+        shapeRadius[k] = maxR || 1.5;
+      }
 
       const canvases = document.querySelectorAll('.ascii-canvas');
       if (!canvases.length) return;
@@ -1208,7 +1234,7 @@
               const w2 = v.y * sb + w1 * cb;
               const d = 2.8;
               const s = d / (w2 + d);
-              proj.push({ x: x1 * s, y: y1 * s, z: v.z * s });
+              proj.push({ x: x1 * s * 0.8, y: y1 * s * 0.8, z: v.z * s * 0.8 });
             }
             points = [];
             for (const [i, j] of data.edges) {
@@ -1244,7 +1270,7 @@
             let z1 = p.x * sry + p.z * cry;
             let y1 = p.y * crx - z1 * srx;
             let z2 = p.y * srx + z1 * crx;
-            const sx = Math.floor(x1 * sc + cols);
+            const sx = Math.floor(x1 * sc + Math.floor(shapeRadius[shape] * sc));
             const sy = Math.floor(y1 * sc + rows * 2);
             const bright = (z2 + 2) * 0.3;
             if (sx > 0 && sx < cols * 2 - 1 && sy > 0 && sy < rows * 4 - 1) {

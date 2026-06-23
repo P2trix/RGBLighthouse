@@ -46,6 +46,13 @@ controls.maxPolarAngle = THREE.MathUtils.degToRad(75);
 controls.minDistance   = 16;
 controls.maxDistance   = 32;
 
+// Disable drag interaction on mobile — auto-rotate only
+function updateMobileInteraction() {
+  const isMobile = window.innerWidth <= 768;
+  controls.enableRotate = !isMobile;
+}
+updateMobileInteraction();
+
 const _pol  = THREE.MathUtils.degToRad(64);
 const _azim = THREE.MathUtils.degToRad(111);
 const _dist = 22;
@@ -396,6 +403,7 @@ animate();
 
 const hero = document.querySelector('.hero-section');
 const ro = new ResizeObserver(() => {
+  updateMobileInteraction();
   const w = hero.offsetWidth, h = hero.offsetHeight;
   camera.aspect = w / h;
   camera.updateProjectionMatrix();

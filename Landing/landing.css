@@ -148,6 +148,84 @@ body {
 }
 .nav__link:hover { color: var(--fg); }
 
+/* ── BURGER MENU ────────────────────────────────────────── */
+.nav__burger {
+  display: none;
+  position: absolute;
+  right: 16px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px;
+  align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 110;
+  transition: background 0.2s, border-color 0.2s;
+}
+.nav__burger:hover { background: rgba(255,255,255,0.05); }
+.nav__burger.is-open {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.nav-overlay.is-open {
+  pointer-events: all;
+  opacity: 1;
+}
+.nav-overlay__bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: saturate(0) brightness(0.35);
+  -webkit-backdrop-filter: saturate(0) brightness(0.35);
+}
+.nav-overlay__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+}
+.nav-overlay__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+.nav-overlay__link {
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 5vw, 40px);
+  font-weight: 600;
+  color: var(--fg);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+.nav-overlay__link:hover { color: var(--accent); }
+.nav-overlay__cta {
+  margin-top: 16px;
+  padding: 12px 32px;
+  border: 1px solid var(--accent);
+  border-radius: 100px;
+  color: var(--accent);
+  font-size: clamp(16px, 3vw, 24px);
+}
+.nav-overlay__cta:hover {
+  background: var(--accent);
+  color: var(--bg) !important;
+}
+
 /* ── TICKER ───────────────────────────────────────────── */
 .ticker-wrap {
   position: relative;
@@ -1148,11 +1226,12 @@ body {
   .nav__left { display: none; }
   .nav__right { display: none; }
   .nav { padding: 0 20px; grid-template-columns: 1fr; justify-items: center; }
+  .nav__burger { display: flex; }
 }
 
 @media (max-width: 768px) {
   :root { --label-w: 36px; }
-  .section__label span { font-size: 9px; }
+  .section__label { display: none; }
   .section__body { padding: 48px 24px 60px; }
   .hero__text { left: 24px; bottom: 56px; }
   .hero__meta { display: none; }
@@ -1166,6 +1245,12 @@ body {
   .exp__date { display: none; }
   .exp__dot-col { display: none; }
   .contact__grid { grid-template-columns: 1fr; gap: 48px; }
+
+  /* dot-title: text above, dots below */
+  .dot-title { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Prevent accidental interactions on decorative elements */
+  .ascii-canvas, .dither-canvas, .tech-logo { pointer-events: none; }
 }
 
 /* ── EXPERIENCE TIMELINE ────────────────────────────────── */

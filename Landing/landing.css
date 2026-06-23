@@ -152,8 +152,8 @@ body {
 /* ── BURGER MENU ────────────────────────────────────────── */
 .nav__burger {
   display: none;
-  position: absolute;
-  right: 16px; top: 50%; transform: translateY(-50%);
+  position: fixed;
+  right: 16px; top: 8px;
   width: 40px; height: 40px;
   align-items: center; justify-content: center;
   background: none; border: 1px solid var(--border);

@@ -1290,8 +1290,8 @@ body {
   /* ─── project-card: prevent grid overflow ──────────── */
   .project-card { overflow: hidden; }
 
-  /* ─── experience card flush with grid ──────────────── */
-  .exp__card { padding: 24px 24px 28px; }
+  /* ─── experience card full width ───────────────────── */
+  .exp__card { padding: 24px 0 28px; border-left: none; border-right: none; }
 }
 
 @media (max-width: 480px) {

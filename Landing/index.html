@@ -1216,7 +1216,7 @@
           const cols = Math.floor(w / cw);
           const rows = Math.floor(h / ch);
           if (cols < 2 || rows < 2) continue;
-          const sc = Math.min(cols, rows) * 0.35;
+          const sc = Math.min(cols, rows) * 0.55;
           const buf = new Float32Array(cols * 2 * rows * 4);
 
           for (const p of points) {
@@ -1224,7 +1224,7 @@
             let z1 = p.x * sry + p.z * cry;
             let y1 = p.y * crx - z1 * srx;
             let z2 = p.y * srx + z1 * crx;
-            const sx = Math.floor(x1 * sc + cols);
+            const sx = Math.floor(x1 * sc + Math.floor(cols * 0.1));
             const sy = Math.floor(y1 * sc + rows * 2);
             const bright = (z2 + 2) * 0.3;
             if (sx > 0 && sx < cols * 2 - 1 && sy > 0 && sy < rows * 4 - 1) {

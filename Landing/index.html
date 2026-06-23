@@ -1213,8 +1213,8 @@
             points = [];
             for (const [i, j] of data.edges) {
               const a = proj[i], b = proj[j];
-              for (let k = 0; k < 30; k++) {
-                const t = k / 30;
+              for (let k = 0; k < 60; k++) {
+                const t = k / 60;
                 points.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
               }
             }
@@ -1244,7 +1244,7 @@
             let z1 = p.x * sry + p.z * cry;
             let y1 = p.y * crx - z1 * srx;
             let z2 = p.y * srx + z1 * crx;
-            const sx = Math.floor(x1 * sc + Math.floor(cols * 0.1));
+            const sx = Math.floor(x1 * sc + cols);
             const sy = Math.floor(y1 * sc + rows * 2);
             const bright = (z2 + 2) * 0.3;
             if (sx > 0 && sx < cols * 2 - 1 && sy > 0 && sy < rows * 4 - 1) {

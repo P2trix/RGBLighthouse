@@ -1493,18 +1493,8 @@
       const rand = rng(seed);
 
       // Background
-      ctx.fillStyle = '#060810';
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, w, h);
-
-      // Hatching lines
-      ctx.strokeStyle = 'rgba(240,242,247,0.02)';
-      ctx.lineWidth = 1;
-      for (let i = -h; i < w + h; i += 6 + rand() * 4) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i - h, h);
-        ctx.stroke();
-      }
 
       // Source: image or text
       const off = document.createElement('canvas');
@@ -1514,9 +1504,9 @@
       if (img) {
         offCtx.drawImage(img, 0, 0, w, h);
       } else {
-        offCtx.fillStyle = '#060810';
+        offCtx.fillStyle = '#000000';
         offCtx.fillRect(0, 0, w, h);
-        offCtx.fillStyle = '#F0F2F7';
+        offCtx.fillStyle = '#D0D0D0';
         offCtx.textAlign = 'center';
         offCtx.textBaseline = 'middle';
         let fs = h * 0.12;
@@ -1543,8 +1533,8 @@
       }
       ctx.putImageData(dstData, 0, 0);
 
-      // --- RGB shapes with screen blend (1 or 2 shapes) ---
-      ctx.globalCompositeOperation = 'screen';
+      // --- RGB shapes with multiply blend (white dots become colored) ---
+      ctx.globalCompositeOperation = 'multiply';
       const shapeColors = ['#FF0000', '#00FF00', '#0000FF'];
       const numShapes = 1 + Math.floor(rand() * 2);
       const usedColors = [];
@@ -1553,16 +1543,18 @@
         const color = avail[Math.floor(rand() * avail.length)];
         usedColors.push(color);
         const type = ['circle','rect','tri'][Math.floor(rand() * 3)];
-        const cx = 0.2 + rand() * 0.6;
-        const cy = 0.2 + rand() * 0.6;
+        // Bias toward a random corner
+        const corner = Math.floor(rand() * 4);
+        const cx = (corner & 1) ? 0.65 + rand() * 0.4 : 0 - rand() * 0.2;
+        const cy = (corner & 2) ? 0.65 + rand() * 0.4 : 0 - rand() * 0.2;
         ctx.fillStyle = color;
         if (type === 'circle') {
-          const r = (0.12 + rand() * 0.22) * Math.min(w, h);
+          const r = (0.35 + rand() * 0.5) * Math.min(w, h);
           ctx.beginPath();
           ctx.arc(cx * w, cy * h, r, 0, Math.PI * 2);
           ctx.fill();
         } else if (type === 'rect') {
-          const s = (0.1 + rand() * 0.2) * w;
+          const s = (0.35 + rand() * 0.5) * w;
           const rot = rand() * Math.PI;
           ctx.save();
           ctx.translate(cx * w, cy * h);
@@ -1570,7 +1562,7 @@
           ctx.fillRect(-s / 2, -s / 2, s, s * h / w);
           ctx.restore();
         } else {
-          const sz = (0.1 + rand() * 0.2) * Math.min(w, h);
+          const sz = (0.35 + rand() * 0.5) * Math.min(w, h);
           const rot = rand() * Math.PI;
           ctx.save();
           ctx.translate(cx * w, cy * h);

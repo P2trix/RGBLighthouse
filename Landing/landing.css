@@ -1257,6 +1257,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100vw;
+    margin-left: -24px;
   }
   .exp__date {
     display: flex;
@@ -1266,6 +1268,7 @@ body {
     font-size: 10px;
     letter-spacing: 0.06em;
     color: var(--muted);
+    padding: 0 24px;
   }
   .exp__dot-col { display: none; }
   .contact__bar { padding: 40px 0; gap: 32px; }
@@ -1292,7 +1295,7 @@ body {
   .project-card { overflow: hidden; }
 
   /* ─── experience card full width ───────────────────── */
-  .exp__card { padding: 24px 0 28px; border-left: none; border-right: none; }
+  .exp__card { padding: 24px 24px 28px; border-left: none; border-right: none; }
 }
 
 @media (max-width: 480px) {

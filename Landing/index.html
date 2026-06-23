@@ -1486,6 +1486,11 @@
 
     const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
 
+    function parseHex(hex) {
+      const h = hex.replace('#','');
+      return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+    }
+
     function render(canvas, seed, img, cardTitle) {
       const ctx = canvas.getContext('2d');
       const w = canvas.width, h = canvas.height;
@@ -1518,16 +1523,19 @@
         offCtx.fillText(cardTitle, w / 2, h / 2);
       }
 
-      // Bayer dither on logical pixels
+      // Bayer dither — dots use var(--muted) color
+      const mc = parseHex(getComputedStyle(canvas).getPropertyValue('--muted').trim() || '#6B7280');
       const srcData = offCtx.getImageData(0, 0, w, h);
       const dstData = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
           const si = (y * w + x) * 4;
           const gray = 0.2126 * srcData.data[si] + 0.7152 * srcData.data[si+1] + 0.0722 * srcData.data[si+2];
-          const bit = gray > (BAYER[y & 3][x & 3] / 16) * 255 ? 255 : 0;
+          const pass = gray > (BAYER[y & 3][x & 3] / 16) * 255;
           const di = si;
-          dstData.data[di] = dstData.data[di+1] = dstData.data[di+2] = bit;
+          dstData.data[di]   = pass ? mc.r : 0;
+          dstData.data[di+1] = pass ? mc.g : 0;
+          dstData.data[di+2] = pass ? mc.b : 0;
           dstData.data[di+3] = 255;
         }
       }

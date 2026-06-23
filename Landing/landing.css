@@ -1263,7 +1263,7 @@ body {
     margin-left: -24px;
     padding: 0 24px;
   }
-  .exp__entry {
+  #experience .exp__entry {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -1274,26 +1274,26 @@ body {
     margin-left: -24px;
     margin-bottom: 32px;
   }
-  .exp__entry:last-child { margin-bottom: 0; }
-  .exp__date {
+  #experience .exp__entry:last-child { margin-bottom: 0; }
+  #experience .exp__date {
     display: contents;
   }
-  .exp__date span {
+  #experience .exp__date span {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.06em;
     color: var(--muted);
   }
-  .exp__date span:first-child {
+  #experience .exp__date span:first-child {
     margin-left: 24px;
   }
-  .exp__dot-col {
+  #experience .exp__dot-col {
     display: inline-flex;
     flex-direction: row;
     align-items: center;
     padding-top: 0;
   }
-  .exp__card {
+  #experience .exp__card {
     width: 100%;
     padding: 24px 24px 28px;
     border-left: none;

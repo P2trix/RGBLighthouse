@@ -25,6 +25,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 56px;
+  overflow-x: hidden;
 }
 
 body {
@@ -1232,10 +1233,11 @@ body {
 @media (max-width: 768px) {
   :root { --label-w: 36px; }
   .section__label { display: none; }
+  .section__hatch { display: none; }
   .section__body { padding: 48px 24px 60px; }
-  .hero__text { left: 24px; bottom: 56px; }
+  .hero__text { left: 24px; bottom: 56px; max-width: calc(100vw - 48px); }
   .hero__meta { display: none; }
-  .hero__title { font-size: 52px; }
+  .hero__title { font-size: clamp(36px, 13vw, 52px); }
   .work__head { flex-direction: column; align-items: flex-start; }
   .footer__body { padding: 22px 24px; }
   .hud { display: none; }
@@ -1244,13 +1246,21 @@ body {
   .exp__entry { grid-template-columns: 1fr; }
   .exp__date { display: none; }
   .exp__dot-col { display: none; }
-  .contact__grid { grid-template-columns: 1fr; gap: 48px; }
+  .contact__bar { padding: 40px 24px; gap: 40px; }
+
+  /* expertise grid: single column on mobile */
+  #expertise .services__grid { grid-template-columns: 1fr; }
 
   /* dot-title: text above, dots below */
   .dot-title { flex-direction: column; align-items: flex-start; gap: 8px; }
 
   /* Prevent accidental interactions on decorative elements */
   .ascii-canvas, .dither-canvas, .tech-logo { pointer-events: none; }
+}
+
+@media (max-width: 480px) {
+  .work__tabs { flex-wrap: wrap; gap: 4px; }
+  .work__tabs .tab { padding: 7px 12px; font-size: 10px; }
 }
 
 /* ── EXPERIENCE TIMELINE ────────────────────────────────── */

@@ -134,7 +134,7 @@
         <div class="services__grid">
           <div class="service-card">
             <div class="service-card__visual">
-              <pre class="ascii-art" data-ascii="backend" aria-hidden="true"></pre>
+              <canvas class="ascii-canvas" data-shape="torus" aria-hidden="true"></canvas>
             </div>
             <div class="service-card__num">01</div>
             <h3 class="service-card__title">Backend Development</h3>
@@ -142,7 +142,7 @@
           </div>
           <div class="service-card">
             <div class="service-card__visual">
-              <pre class="ascii-art" data-ascii="cube" aria-hidden="true"></pre>
+              <canvas class="ascii-canvas" data-shape="cube" aria-hidden="true"></canvas>
             </div>
             <div class="service-card__num">02</div>
             <h3 class="service-card__title">Blockchain &amp; Smart Contracts</h3>
@@ -150,7 +150,7 @@
           </div>
           <div class="service-card">
             <div class="service-card__visual">
-              <pre class="ascii-art" data-ascii="server" aria-hidden="true"></pre>
+              <canvas class="ascii-canvas" data-shape="prism" aria-hidden="true"></canvas>
             </div>
             <div class="service-card__num">03</div>
             <h3 class="service-card__title">Infrastructure &amp; DevOps</h3>
@@ -158,7 +158,7 @@
           </div>
           <div class="service-card">
             <div class="service-card__visual">
-              <pre class="ascii-art" data-ascii="db" aria-hidden="true"></pre>
+              <canvas class="ascii-canvas" data-shape="sphere" aria-hidden="true"></canvas>
             </div>
             <div class="service-card__num">04</div>
             <h3 class="service-card__title">Data &amp; Architecture</h3>
@@ -1085,63 +1085,185 @@
       } catch (_) { /* keep hardcoded fallback */ }
     })();
 
-    /* ASCII 3D Engine */
+    /* Braille 3D Renderer — replaces static ASCII with animated 3D shapes */
     (() => {
-      const createShape = (type) => {
-        let vertices = [];
-        if (type === 'cube') { // Blockchain
-          for(let x of [-1, 1]) for(let y of [-1, 1]) for(let z of [-1, 1]) vertices.push([x, y, z]);
-        } else if (type === 'backend') { // Box
-          for(let x of [-1.8, 1.8]) for(let y of [-0.6, 0.6]) for(let z of [-0.6, 0.6]) vertices.push([x, y, z]);
-        } else if (type === 'server') { // Prism
-          for(let i=0; i<4; i++) {
-            let a = i * Math.PI / 2;
-            vertices.push([Math.cos(a)*1.2, 1, Math.sin(a)*1.2]);
-            vertices.push([Math.cos(a)*1.2, -1, Math.sin(a)*1.2]);
+      const BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+      const BIT = [1,8,2,16,4,32,64,128];
+
+      const SHAPES = {
+        torus: () => {
+          const pts = [];
+          for (let i = 0; i < 60; i++) {
+            const a = (i / 60) * Math.PI * 2;
+            for (let j = 0; j < 30; j++) {
+              const b = (j / 30) * Math.PI * 2;
+              const R = 1.4, r = 0.55;
+              pts.push({
+                x: (R + r * Math.cos(b)) * Math.cos(a),
+                y: (R + r * Math.cos(b)) * Math.sin(a),
+                z: r * Math.sin(b)
+              });
+            }
           }
-        } else if (type === 'db') { // Sphere
-          for(let i=0; i<30; i++) {
-            let phi = Math.acos(-1 + (2 * i) / 30);
-            let theta = Math.sqrt(30 * Math.PI) * phi;
-            vertices.push([Math.cos(theta) * Math.sin(phi)*1.2, Math.sin(theta) * Math.sin(phi)*1.2, Math.cos(phi)*1.2]);
+          return pts;
+        },
+        cube: () => {
+          const pts = [];
+          const N = 18;
+          const faces = [
+            { n: [1,0,0], u: [0,1,0], v: [0,0,1] },
+            { n: [-1,0,0], u: [0,1,0], v: [0,0,1] },
+            { n: [0,1,0], u: [1,0,0], v: [0,0,1] },
+            { n: [0,-1,0], u: [1,0,0], v: [0,0,1] },
+            { n: [0,0,1], u: [1,0,0], v: [0,1,0] },
+            { n: [0,0,-1], u: [1,0,0], v: [0,1,0] }
+          ];
+          for (const f of faces) {
+            for (let i = 0; i < N; i++) {
+              for (let j = 0; j < N; j++) {
+                const u = (i / (N-1)) * 2 - 1;
+                const v = (j / (N-1)) * 2 - 1;
+                pts.push({
+                  x: f.n[0] + u*f.u[0] + v*f.v[0],
+                  y: f.n[1] + u*f.u[1] + v*f.v[1],
+                  z: f.n[2] + u*f.u[2] + v*f.v[2]
+                });
+              }
+            }
+          }
+          return pts;
+        },
+        prism: () => {
+          const pts = [];
+          const sides = 8, hStacks = 40;
+          for (let i = 0; i < sides; i++) {
+            const a1 = (i / sides) * Math.PI * 2;
+            const a2 = ((i + 1) / sides) * Math.PI * 2;
+            for (let j = 0; j < hStacks; j++) {
+              const t1 = (j / hStacks) * 2 - 1;
+              const t2 = ((j + 1) / hStacks) * 2 - 1;
+              pts.push({ x: Math.cos(a1), y: t1, z: Math.sin(a1) });
+              pts.push({ x: Math.cos(a2), y: t2, z: Math.sin(a2) });
+            }
+          }
+          for (let i = 0; i < 400; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = Math.sqrt(Math.random());
+            pts.push({ x: r * Math.cos(a), y: 1, z: r * Math.sin(a) });
+            pts.push({ x: r * Math.cos(a), y: -1, z: r * Math.sin(a) });
+          }
+          return pts;
+        },
+        sphere: () => {
+          const pts = [];
+          for (let i = 0; i < 40; i++) {
+            const lat = (i / 40) * Math.PI;
+            for (let j = 0; j < 60; j++) {
+              const lon = (j / 60) * Math.PI * 2;
+              const r = 1.2;
+              pts.push({
+                x: r * Math.sin(lat) * Math.cos(lon),
+                y: r * Math.cos(lat),
+                z: r * Math.sin(lat) * Math.sin(lon)
+              });
+            }
+          }
+          return pts;
+        }
+      };
+
+      const cache = {};
+      for (const [k, fn] of Object.entries(SHAPES)) cache[k] = fn();
+
+      const canvases = document.querySelectorAll('.ascii-canvas');
+      if (!canvases.length) return;
+
+      const style = document.createElement('style');
+      style.textContent = `.ascii-canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }`;
+      document.head.appendChild(style);
+
+      const setSize = (c) => {
+        const r = c.getBoundingClientRect();
+        if (r.width && r.height) { c.width = r.width; c.height = r.height; }
+      };
+      canvases.forEach(setSize);
+      window.addEventListener('resize', () => canvases.forEach(setSize));
+
+      let lastT = 0;
+      const INTERVAL = 1000 / 24;
+
+      function render(time) {
+        const t = time * 0.001;
+        const rx = t * 0.3, ry = t * 0.5;
+        const crx = Math.cos(rx), srx = Math.sin(rx);
+        const cry = Math.cos(ry), sry = Math.sin(ry);
+
+        for (const canvas of canvases) {
+          const shape = canvas.dataset.shape;
+          const points = cache[shape];
+          if (!points) continue;
+
+          const ctx = canvas.getContext('2d');
+          const w = canvas.width, h = canvas.height;
+          if (!w || !h) continue;
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = '#F0F2F7';
+          ctx.font = '10px "Courier New", monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          const cw = 6, ch = 11;
+          const cols = Math.floor(w / cw);
+          const rows = Math.floor(h / ch);
+          if (cols < 2 || rows < 2) continue;
+          const sc = Math.min(cols, rows) * 0.35;
+          const buf = new Float32Array(cols * 2 * rows * 4);
+
+          for (const p of points) {
+            let x1 = p.x * cry - p.z * sry;
+            let z1 = p.x * sry + p.z * cry;
+            let y1 = p.y * crx - z1 * srx;
+            let z2 = p.y * srx + z1 * crx;
+            const sx = Math.floor(x1 * sc + cols);
+            const sy = Math.floor(y1 * sc + rows * 2);
+            const bright = (z2 + 2) * 0.3;
+            if (sx > 0 && sx < cols * 2 - 1 && sy > 0 && sy < rows * 4 - 1) {
+              buf[sy * cols * 2 + sx] += bright;
+            }
+          }
+
+          let maxV = 0;
+          for (let i = 0; i < buf.length; i++) if (buf[i] > maxV) maxV = buf[i];
+          if (maxV > 0) for (let i = 0; i < buf.length; i++) buf[i] /= maxV;
+
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              let code = 0x2800;
+              let hasDot = false;
+              for (let dy = 0; dy < 4; dy++) {
+                for (let dx = 0; dx < 2; dx++) {
+                  const sx = c * 2 + dx, sy = r * 4 + dy;
+                  const val = buf[sy * cols * 2 + sx];
+                  const thr = BAYER[(sy % 4) * 4 + (sx % 4)] / 16;
+                  if (val > thr * 0.5) {
+                    code |= BIT[dy * 2 + dx];
+                    hasDot = true;
+                  }
+                }
+              }
+              if (hasDot) {
+                ctx.fillText(String.fromCharCode(code), c * cw + cw/2, r * ch + ch/2);
+              }
+            }
           }
         }
-        return vertices;
-      };
+      }
 
-      const render = () => {
-        const time = Date.now() * 0.0015;
-        document.querySelectorAll('.ascii-art').forEach(el => {
-          const type = el.dataset.ascii;
-          const verts = createShape(type);
-          const width = 45, height = 20;
-          let buffer = Array(width * height).fill(' ');
-
-          verts.forEach(v => {
-            let [x, y, z] = v;
-            let x1 = x * Math.cos(time) - z * Math.sin(time);
-            let z1 = x * Math.sin(time) + z * Math.cos(time);
-            let y1 = y * Math.cos(time * 0.5) - z1 * Math.sin(time * 0.5);
-            let z2 = y * Math.sin(time * 0.5) + z1 * Math.cos(time * 0.5);
-            
-            let scale = 7;
-            let px = Math.floor(x1 * scale + width / 2);
-            let py = Math.floor(y1 * scale + height / 2);
-            
-            if(px >= 0 && px < width && py >= 0 && py < height) {
-              buffer[py * width + px] = '█';
-            }
-          });
-          
-          let output = '';
-          for(let i=0; i<height; i++) {
-            output += buffer.slice(i*width, (i+1)*width).join('') + '\n';
-          }
-          el.textContent = output;
-        });
-        requestAnimationFrame(render);
-      };
-      render();
+      function loop(t) {
+        requestAnimationFrame(loop);
+        if (t - lastT >= INTERVAL) { lastT = t; render(t); }
+      }
+      requestAnimationFrame(loop);
     })();
 
     /* section label active highlight */

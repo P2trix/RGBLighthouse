@@ -142,7 +142,7 @@
           </div>
           <div class="service-card">
             <div class="service-card__visual">
-              <canvas class="ascii-canvas" data-shape="cube" aria-hidden="true"></canvas>
+              <canvas class="ascii-canvas" data-shape="tesseract" aria-hidden="true"></canvas>
             </div>
             <div class="service-card__num">02</div>
             <h3 class="service-card__title">Blockchain &amp; Smart Contracts</h3>
@@ -1107,31 +1107,24 @@
           }
           return pts;
         },
-        cube: () => {
-          const pts = [];
-          const N = 18;
-          const faces = [
-            { n: [1,0,0], u: [0,1,0], v: [0,0,1] },
-            { n: [-1,0,0], u: [0,1,0], v: [0,0,1] },
-            { n: [0,1,0], u: [1,0,0], v: [0,0,1] },
-            { n: [0,-1,0], u: [1,0,0], v: [0,0,1] },
-            { n: [0,0,1], u: [1,0,0], v: [0,1,0] },
-            { n: [0,0,-1], u: [1,0,0], v: [0,1,0] }
-          ];
-          for (const f of faces) {
-            for (let i = 0; i < N; i++) {
-              for (let j = 0; j < N; j++) {
-                const u = (i / (N-1)) * 2 - 1;
-                const v = (j / (N-1)) * 2 - 1;
-                pts.push({
-                  x: f.n[0] + u*f.u[0] + v*f.v[0],
-                  y: f.n[1] + u*f.u[1] + v*f.v[1],
-                  z: f.n[2] + u*f.u[2] + v*f.v[2]
-                });
-              }
+        tesseract: () => {
+          const verts4D = [];
+          for (let i = 0; i < 16; i++) {
+            verts4D.push({
+              x: (i & 1) ? 1 : -1,
+              y: (i & 2) ? 1 : -1,
+              z: (i & 4) ? 1 : -1,
+              w: (i & 8) ? 1 : -1
+            });
+          }
+          const edges = [];
+          for (let i = 0; i < 16; i++) {
+            for (let j = i + 1; j < 16; j++) {
+              const d = i ^ j;
+              if (d === 1 || d === 2 || d === 4 || d === 8) edges.push([i, j]);
             }
           }
-          return pts;
+          return { verts4D, edges };
         },
         prism: () => {
           const pts = [];
@@ -1200,8 +1193,35 @@
 
         for (const canvas of canvases) {
           const shape = canvas.dataset.shape;
-          const points = cache[shape];
-          if (!points) continue;
+          let points;
+          if (shape === 'tesseract') {
+            const data = cache[shape];
+            if (!data) continue;
+            const a4 = t * 0.2, b4 = t * 0.3;
+            const ca = Math.cos(a4), sa = Math.sin(a4);
+            const cb = Math.cos(b4), sb = Math.sin(b4);
+            const proj = [];
+            for (const v of data.verts4D) {
+              const x1 = v.x * ca - v.w * sa;
+              const w1 = v.x * sa + v.w * ca;
+              const y1 = v.y * cb - w1 * sb;
+              const w2 = v.y * sb + w1 * cb;
+              const d = 2.8;
+              const s = d / (w2 + d);
+              proj.push({ x: x1 * s, y: y1 * s, z: v.z * s });
+            }
+            points = [];
+            for (const [i, j] of data.edges) {
+              const a = proj[i], b = proj[j];
+              for (let k = 0; k < 10; k++) {
+                const t = k / 10;
+                points.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
+              }
+            }
+          } else {
+            points = cache[shape];
+            if (!points) continue;
+          }
 
           const ctx = canvas.getContext('2d');
           const w = canvas.width, h = canvas.height;

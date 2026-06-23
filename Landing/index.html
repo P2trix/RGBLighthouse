@@ -1213,8 +1213,8 @@
             points = [];
             for (const [i, j] of data.edges) {
               const a = proj[i], b = proj[j];
-              for (let k = 0; k < 10; k++) {
-                const t = k / 10;
+              for (let k = 0; k < 30; k++) {
+                const t = k / 30;
                 points.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
               }
             }

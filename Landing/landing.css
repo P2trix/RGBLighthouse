@@ -1250,10 +1250,22 @@ body {
   .hud { display: none; }
   .exp__timeline { padding-left: 0; }
   .exp__timeline::before { display: none; }
-  .exp__entry { grid-template-columns: 1fr; }
-  .exp__date { display: none; }
+  .exp__entry {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .exp__date {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
   .exp__dot-col { display: none; }
-  .contact__bar { padding: 40px 24px; gap: 40px; }
+  .contact__bar { padding: 40px 0; gap: 32px; }
 
   /* expertise grid: single column on mobile */
   #expertise .services__grid { grid-template-columns: 1fr; }

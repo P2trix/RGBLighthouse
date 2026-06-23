@@ -1658,7 +1658,6 @@
   (() => {
     const burger = document.querySelector('.nav__burger');
     const overlay = document.getElementById('nav-overlay');
-    const bg = overlay?.querySelector('.nav-overlay__bg');
     const links = overlay?.querySelectorAll('.nav-overlay__link');
     if (!burger || !overlay) return;
 
@@ -1677,7 +1676,9 @@
     burger.addEventListener('click', () => {
       overlay.classList.contains('is-open') ? close() : open();
     });
-    bg?.addEventListener('click', close);
+    overlay.querySelector('.nav-overlay__body')?.addEventListener('click', e => {
+      if (e.target === e.currentTarget) close();
+    });
     links?.forEach(l => l.addEventListener('click', close));
   })();
   </script>

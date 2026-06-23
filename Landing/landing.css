@@ -1257,9 +1257,7 @@ body {
   .exp__timeline { padding-left: 0; }
   .exp__timeline::before { display: none; }
   .exp__head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    display: block;
     margin-bottom: 32px;
     width: 100vw;
     margin-left: -24px;

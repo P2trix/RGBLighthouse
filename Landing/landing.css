@@ -723,7 +723,7 @@ body {
 
 .service-card__visual {
   margin: -36px -32px 32px;
-  height: 400px;
+  height: 260px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;

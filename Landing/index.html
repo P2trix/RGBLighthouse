@@ -1216,7 +1216,7 @@
           const cols = Math.floor(w / cw);
           const rows = Math.floor(h / ch);
           if (cols < 2 || rows < 2) continue;
-          const sc = Math.min(cols, rows) * 0.55;
+          const sc = Math.min(cols, rows) * 0.8;
           const buf = new Float32Array(cols * 2 * rows * 4);
 
           for (const p of points) {

@@ -1469,5 +1469,170 @@
     }
   })();
   </script>
+
+  <script>
+  /* ── Dither + RGB blend project card images ──────────── */
+  (() => {
+    const cards = document.querySelectorAll('.project-card__img');
+    if (!cards.length) return;
+
+    function hash(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+      return Math.abs(h);
+    }
+
+    function rng(seed) { let s = seed; return () => { s = (s * 1664525 + 1013904223) & 0x7fffffff; return s / 0x7fffffff; }; }
+
+    function render(canvas, seed) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      if (!w || !h) return;
+      const rand = rng(seed);
+
+      // --- Background: dark fill ---
+      ctx.fillStyle = '#060810';
+      ctx.fillRect(0, 0, w, h);
+
+      // --- Hatching lines (subtle) ---
+      ctx.strokeStyle = 'rgba(240,242,247,0.02)';
+      ctx.lineWidth = 1;
+      for (let i = -h; i < w + h; i += 6 + rand() * 4) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i - h, h);
+        ctx.stroke();
+      }
+
+      // --- Organic blob SDF (sum of 4-6 metaballs) ---
+      const blobs = [];
+      const nBlobs = 4 + Math.floor(rand() * 3);
+      for (let i = 0; i < nBlobs; i++) {
+        blobs.push({
+          cx: (0.2 + rand() * 0.6) * w,
+          cy: (0.2 + rand() * 0.6) * h,
+          r: (0.15 + rand() * 0.25) * Math.min(w, h),
+          strength: 0.8 + rand() * 0.4
+        });
+      }
+
+      function maskVal(x, y) {
+        let sum = 0;
+        for (const b of blobs) {
+          const dx = x - b.cx, dy = y - b.cy;
+          const d2 = dx * dx + dy * dy;
+          sum += b.strength * b.r * b.r / (d2 + 0.001);
+        }
+        return Math.min(1, sum * 0.04);
+      }
+
+      // --- Dither dots (halftone grid) ---
+      const spacing = 3.5;
+      const maxR = 2.2;
+      ctx.fillStyle = '#F0F2F7';
+      for (let y = 0; y < h; y += spacing) {
+        for (let x = 0; x < w; x += spacing) {
+          const m = maskVal(x, y);
+          if (m < 0.05) continue;
+          const r = Math.min(m * maxR * 1.2, maxR);
+          ctx.beginPath();
+          ctx.arc(x + (rand() * 0.3 - 0.15), y + (rand() * 0.3 - 0.15), r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // --- Extra fine dots for texture ---
+      ctx.fillStyle = 'rgba(240,242,247,0.3)';
+      for (let i = 0; i < 60; i++) {
+        const x = rand() * w, y = rand() * h;
+        if (maskVal(x, y) > 0.3) {
+          ctx.beginPath();
+          ctx.arc(x, y, 0.5 + rand() * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // --- RGB shapes with screen blend ---
+      ctx.globalCompositeOperation = 'screen';
+
+      const shapes = [
+        { type: 'circle', color: '#FF0000', cx: 0.3 + rand() * 0.4, cy: 0.3 + rand() * 0.4, r: 0.15 + rand() * 0.2 },
+        { type: 'rect',   color: '#00FF00', cx: 0.3 + rand() * 0.4, cy: 0.3 + rand() * 0.4, s: 0.12 + rand() * 0.22, rot: rand() * 1.2 },
+        { type: 'tri',    color: '#0000FF', cx: 0.3 + rand() * 0.4, cy: 0.3 + rand() * 0.4, s: 0.12 + rand() * 0.22, rot: rand() * 1.5 },
+      ];
+
+      // Extra shape to ensure overlaps
+      if (rand() > 0.5) shapes.push({
+        type: ['circle','rect','tri'][Math.floor(rand() * 3)],
+        color: ['#FF0000','#00FF00','#0000FF'][Math.floor(rand() * 3)],
+        cx: 0.2 + rand() * 0.6, cy: 0.2 + rand() * 0.6,
+        r: 0.12 + rand() * 0.18, s: 0.1 + rand() * 0.2, rot: rand() * 2
+      });
+
+      for (const s of shapes) {
+        ctx.fillStyle = s.color;
+        if (s.type === 'circle') {
+          ctx.beginPath();
+          ctx.arc(s.cx * w, s.cy * h, s.r * Math.min(w, h), 0, Math.PI * 2);
+          ctx.fill();
+        } else if (s.type === 'rect') {
+          ctx.save();
+          ctx.translate(s.cx * w, s.cy * h);
+          ctx.rotate(s.rot);
+          ctx.fillRect(-s.s * w / 2, -s.s * h / 2, s.s * w, s.s * h);
+          ctx.restore();
+        } else if (s.type === 'tri') {
+          ctx.save();
+          ctx.translate(s.cx * w, s.cy * h);
+          ctx.rotate(s.rot);
+          const sz = s.s * Math.min(w, h) / 2;
+          ctx.beginPath();
+          ctx.moveTo(0, -sz);
+          ctx.lineTo(-sz * 0.866, sz * 0.5);
+          ctx.lineTo(sz * 0.866, sz * 0.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+
+      // --- Subtle vignette overlay ---
+      const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.1, w / 2, h / 2, Math.max(w, h) * 0.7);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.4)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    function initCard(imgEl, idx) {
+      const canvas = document.createElement('canvas');
+      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block';
+      canvas.className = 'dither-canvas';
+      imgEl.style.position = 'relative';
+      imgEl.appendChild(canvas);
+
+      const seed = hash(window.location.pathname + idx + (imgEl.querySelector('.project-card__title')?.textContent || ''));
+
+      function resize() {
+        const r = imgEl.getBoundingClientRect();
+        if (r.width && r.height) {
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = r.width * dpr;
+          canvas.height = r.height * dpr;
+          const ctx = canvas.getContext('2d');
+          ctx.scale(dpr, dpr);
+          render(canvas, seed);
+        }
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+    }
+
+    cards.forEach(initCard);
+  })();
+  </script>
 </body>
 </html>

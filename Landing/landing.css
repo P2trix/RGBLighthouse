@@ -749,6 +749,13 @@ body {
 }
 .reveal-title.is-revealed { opacity: 1; transform: none; }
 
+/* dot-title: text + dots canvas side by side on desktop */
+.dot-title {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
 .section-sub {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -1256,6 +1263,21 @@ body {
 
   /* Prevent accidental interactions on decorative elements */
   .ascii-canvas, .dither-canvas, .tech-logo { pointer-events: none; }
+
+  /* ─── grid overlay: 4 lines aligned to content edges ─── */
+  .grid-overlay {
+    left: 24px;
+    transform: none;
+    width: calc(100vw - 48px);
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .grid-overlay b:nth-child(n+5) { display: none; }
+
+  /* ─── project-card: prevent grid overflow ──────────── */
+  .project-card { overflow: hidden; }
+
+  /* ─── experience card flush with grid ──────────────── */
+  .exp__card { padding: 24px 24px 28px; }
 }
 
 @media (max-width: 480px) {

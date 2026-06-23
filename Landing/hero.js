@@ -46,10 +46,16 @@ controls.maxPolarAngle = THREE.MathUtils.degToRad(75);
 controls.minDistance   = 16;
 controls.maxDistance   = 32;
 
-// Disable drag interaction on mobile — auto-rotate only
+// Disable all controls on mobile — prevent OrbitControls from capturing touch events
+// (CSS pointer-events:none handles the canvas, this is an extra JS safeguard)
 function updateMobileInteraction() {
   const isMobile = window.innerWidth <= 768;
-  controls.enableRotate = !isMobile;
+  if (isMobile) {
+    controls.enabled = false;
+  } else {
+    controls.enabled = true;
+    controls.enableRotate = true;
+  }
 }
 updateMobileInteraction();
 
@@ -365,6 +371,7 @@ setTimeout(() => {
 
 const clock = new THREE.Clock();
 let prevT = 0;
+let _autoAzim = _azim; // tracked azimuth for manual auto-rotate on mobile
 
 function animate() {
   requestAnimationFrame(animate);
@@ -396,6 +403,17 @@ function animate() {
     lightTop.intensity   = base.top;
   }
 
+  if (!controls.enabled) {
+    _autoAzim += dt * 0.4;
+    camera.position.x = controls.target.x + _dist * Math.sin(_pol) * Math.sin(_autoAzim);
+    camera.position.z = controls.target.z + _dist * Math.sin(_pol) * Math.cos(_autoAzim);
+    camera.lookAt(controls.target);
+  } else {
+    // sync tracked azimuth with current camera position
+    const dx = camera.position.x - controls.target.x;
+    const dz = camera.position.z - controls.target.z;
+    _autoAzim = Math.atan2(dx, dz);
+  }
   controls.update();
   composer.render();
 }

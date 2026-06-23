@@ -1241,7 +1241,8 @@ body {
 @media (max-width: 768px) {
   :root { --label-w: 36px; }
   .section__label { display: none; }
-  #canvas { pointer-events: none; }
+  #canvas { pointer-events: none; touch-action: auto; }
+  .hero__body { overflow: visible; }
   .section__hatch { display: none; }
   .section__body { padding: 48px 24px 60px; }
   .hero__text { left: 24px; bottom: 56px; max-width: calc(100vw - 48px); }

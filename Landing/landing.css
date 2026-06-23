@@ -1295,6 +1295,7 @@ body {
   }
   #experience .exp__card {
     width: 100%;
+    box-sizing: border-box;
     padding: 24px 24px 28px;
     border-left: none;
     border-right: none;

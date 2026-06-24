@@ -340,11 +340,7 @@ body {
   flex-direction: column;
   gap: 28px;
 }
-#expertise .section-title {
-  font-size: clamp(48px, 6vw, 90px);
-  line-height: 64px;
-  margin-bottom: 0;
-}
+
 #expertise .section-sub {
   margin-bottom: 0;
   padding-top: 32px;
